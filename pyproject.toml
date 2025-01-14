@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helpro"
+version = "0.1.0"
+requires-python = ">=3.10"
+authors = [
+    {name = "Yuji Ikeda"},
+]
+
+[tool.ruff.lint]
+preview = true  # necessary to activate many pycodestyle rules
+select = ["ALL"]
+ignore = ["CPY", "S101"]
