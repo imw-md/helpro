@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from helpro.molpro import write
+from helpro.molpro.inp import write
 
 
 def test_molpro() -> None:

@@ -2,69 +2,7 @@
 
 from pathlib import Path
 
-methods = (
-    "HF",
-    "MP2",
-    "CCSD",
-    "CCSD_T",
-    "DF-HF",
-    "DF-MP2",
-    "DF-CCSD",
-    "DF-CCSD_T",
-    "DF-MP2-F12",
-    "DF-CCSD-F12",
-    "DF-CCSD_T-F12",
-    "DF-PNO-LMP2",
-    "DF-PNO-LCCSD",
-    "DF-PNO-LCCSD_T",
-    "DF-PNO-LMP2-F12",
-    "DF-PNO-LCCSD-F12",
-    "DF-PNO-LCCSD_T-F12",
-)
-
-methods_dft = (
-    "KS_LDA",
-    "KS_PBE",
-    "KS_PBE-D2",
-    "KS_PBE-D3",
-    "KS_PBE-D3_BJ",
-    "KS_PBE-D4",
-    "DF-KS_LDA",
-    "DF-KS_PBE",
-    "DF-KS_PBE-D2",
-    "DF-KS_PBE-D3",
-    "DF-KS_PBE-D3_BJ",
-    "DF-KS_PBE-D4",
-)
-
-methods_rpa = (
-    "KSRPA_DIRPA",
-    "KSRPA_RPAX2",
-    # "KSRPA_ACFDT",
-    # "KSRPA_RIRPA",  # equivalent to ACFD_RIRPA
-    "ACFD_RIRPA",
-    # "RPATDDFT",
-)
-
-methods += methods_dft + methods_rpa
-
-bases = (
-    "cc-pVDZ",
-    "cc-pVTZ",
-    "cc-pVQZ",
-    "cc-pV5Z",
-    "cc-pV6Z",
-    "heavy-aug-cc-pVDZ",
-    "heavy-aug-cc-pVTZ",
-    "heavy-aug-cc-pVQZ",
-    "heavy-aug-cc-pV5Z",
-    "heavy-aug-cc-pV6Z",
-    "aug-cc-pVDZ",
-    "aug-cc-pVTZ",
-    "aug-cc-pVQZ",
-    "aug-cc-pV5Z",
-    "aug-cc-pV6Z",
-)
+from .data import all_bases, all_methods, methods_rpa
 
 
 def parse_dft_method(method: str) -> str:
@@ -132,7 +70,12 @@ def write(
     core: bool = True,
 ) -> None:
     """Write."""
-    is_rpa = method in methods_rpa
+    if method not in all_methods:
+        raise ValueError(method)
+
+    if basis not in all_bases:
+        raise ValueError(basis)
+
     basis = parse_heavy_basis(basis)
 
     lines = (
@@ -149,6 +92,7 @@ def write(
     with p.open("w", encoding="utf-8") as f:
         for line in lines:
             if "__basis__" in line:
+                is_rpa = method in methods_rpa
                 basis_lines = make_basis_lines(basis, is_rpa=is_rpa)
                 f.write(line.replace("__basis__", basis_lines))
             elif "__method__" in line:
