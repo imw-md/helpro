@@ -124,18 +124,24 @@ def make_basis_lines(basis: str, *, is_rpa: bool = False) -> list[str]:
     return basis
 
 
-def write(method: str, basis: str, *, core: bool = True) -> None:
+def write(
+    method: str,
+    basis: str,
+    geometry: str = "initial.xyz",
+    *,
+    core: bool = True,
+) -> None:
     """Write."""
     is_rpa = method in methods_rpa
     basis = parse_heavy_basis(basis)
 
     lines = (
-        "GPRINT,ORBITALS",
-        "NOSYM",
-        "ANGSTROM",
-        "GEOMETRY=initial.xyz",
-        "BASIS=__basis__",
-        "__method__",
+        r"GPRINT,ORBITALS",
+        r"NOSYM",
+        r"ANGSTROM",
+        f"GEOMETRY={geometry}",
+        r"BASIS=__basis__",
+        r"__method__",
     )
     lines = tuple(f"{_}\n" for _ in lines)
 
