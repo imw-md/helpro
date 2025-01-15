@@ -20,20 +20,31 @@ methods = (
     "DF-PNO-LCCSD_T-F12",
 )
 
-methods_dft = (
-    "KS_LDA",
-    "KS_PBE",
-    "KS_PBE-D2",
-    "KS_PBE-D3",
-    "KS_PBE-D3_BJ",
-    "KS_PBE-D4",
-    "DF-KS_LDA",
-    "DF-KS_PBE",
-    "DF-KS_PBE-D2",
-    "DF-KS_PBE-D3",
-    "DF-KS_PBE-D3_BJ",
-    "DF-KS_PBE-D4",
-)
+
+def _make_methods_dft() -> tuple[str, ...]:
+    """Make DFT methods.
+
+    https://www.molpro.net/manual/doku.php?id=the_density_functional_program
+
+    Returns
+    -------
+    tuple[str, ...]
+        DFT methods.
+
+    """
+    methods_basic = (
+        "KS_LDA",
+        "KS_PBE",
+        "KS_PBE-D2",
+        "KS_PBE-D3",
+        "KS_PBE-D3_BJ",
+        "KS_PBE-D4",
+    )
+    methods_r = tuple(f"R{_}" for _ in methods_basic)
+    methods_u = tuple(f"U{_}" for _ in methods_basic)
+    methods_df = tuple(f"DF-{_}" for _ in methods_basic + methods_r)
+    return methods_basic + methods_r + methods_u + methods_df
+
 
 methods_rpa = (
     "KSRPA_DIRPA",
@@ -44,6 +55,7 @@ methods_rpa = (
     # "RPATDDFT",
 )
 
+methods_dft = _make_methods_dft()
 all_methods = methods + methods_dft + methods_rpa
 
 all_bases = (
