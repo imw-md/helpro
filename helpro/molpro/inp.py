@@ -35,13 +35,17 @@ def make_method_lines(method: str, *, core: bool = True) -> str:
     if props.is_ks:
         lines.append(parse_dft_method(method))
         return "\n".join(lines)
-    if not is_hf:
-        lines.append("{DF-HF}" if props.is_df else "{HF}")
+    if is_hf:
+        lines.append(f"{{{method}}}")
+        return "\n".join(lines)
+
+    lines.append("{DF-HF}" if props.is_df else "{HF}")
     if props.is_pno and props.is_f12:
         lines.append(f"{{DF-CABS{str_core}}}")
     method = method.replace("CCSD_T", "CCSD(T)")
     method = method.replace("DF-PNO", "PNO")
     lines.append(f"{{{method}{str_core}}}")
+
     return "\n".join(lines)
 
 
