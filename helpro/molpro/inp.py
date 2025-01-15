@@ -21,9 +21,7 @@ def make_method_lines(method: str, *, core: bool = True) -> str:
     """Make method lines."""
     props = methods_all[method]
 
-    is_hf = method in {"HF", "DF-HF"}
-
-    str_core = ";CORE" if core and not is_hf else ""
+    str_core = ";CORE" if core and not props.is_hf else ""
     lines = []
     if props.is_rpa:
         ks = "DF-UKS_PBE" if props.is_unrestricted else "DF-KS_PBE"
@@ -35,7 +33,7 @@ def make_method_lines(method: str, *, core: bool = True) -> str:
     if props.is_ks:
         lines.append(parse_dft_method(method))
         return "\n".join(lines)
-    if is_hf:
+    if props.is_hf:
         lines.append(f"{{{method}}}")
         return "\n".join(lines)
 

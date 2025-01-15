@@ -1,6 +1,6 @@
 """Data for MOLPRO."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -10,33 +10,63 @@ class MethodProperties:
     name: str
     is_df: bool = False
     is_f12: bool = False
+    is_hf: bool = False  # whether this is the HF method
     is_ks: bool = False
     is_pno: bool = False
     is_rpa: bool = False
     is_unrestricted: bool = False
 
 
-def _make_methods_basic() -> dict[str, MethodProperties]:
-    """Make basic methods.
+def _make_methods_hf() -> dict[str, MethodProperties]:
+    """Make HF methods.
 
     Returns
     -------
     dict[str, MethodProperties]
-        Basic methods.
+        HF methods.
 
     """
     methods = {}
 
-    names_hf = ("HF",)
+    names_basic = ("HF",)
+
+    names = names_basic
+    kwargs = {"is_hf": True}
+    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+
+    names = tuple(f"R{_}" for _ in names_basic)
+    kwargs = {"is_hf": True}
+    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+
+    names = tuple(f"U{_}" for _ in names_basic)
+    kwargs = {"is_hf": True, "is_unrestricted": True}
+    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+
+    methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
+
+    return methods
+
+
+def _make_methods_post_hf() -> dict[str, MethodProperties]:
+    """Make post-HF methods.
+
+    Returns
+    -------
+    dict[str, MethodProperties]
+        Post-HF methods.
+
+    """
+    methods = {}
+
     names_ps = (
         "MP2",
         "CCSD",
         "CCSD_T",
     )
     kwargs = {}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_hf + names_ps})
+    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_ps})
 
-    names = tuple(f"DF-{_}" for _ in names_hf + names_ps)
+    names = tuple(f"DF-{_}" for _ in names_ps)
     kwargs = {"is_df": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
@@ -130,7 +160,12 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
 
 def _get_methods_all() -> dict[str, MethodProperties]:
     """Get methods."""
-    return _make_methods_basic() | _make_methods_dft() | _make_methods_rpa()
+    return (
+        _make_methods_hf()
+        | _make_methods_post_hf()
+        | _make_methods_dft()
+        | _make_methods_rpa()
+    )
 
 
 methods_all = _get_methods_all()

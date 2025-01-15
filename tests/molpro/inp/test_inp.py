@@ -11,6 +11,7 @@ from helpro.molpro.inp import write
     ("method", "basis", "core"),
     [
         ("DF-HF", "cc-pVDZ", False),
+        ("DF-UHF", "cc-pVDZ", False),
         ("DF-MP2", "cc-pVDZ", False),
         ("DF-MP2", "cc-pVDZ", True),
         ("KSRPA_DIRPA", "cc-pVDZ", False),
