@@ -2,7 +2,8 @@
 
 from pathlib import Path
 
-from .data import all_bases, methods_all
+from .bases import bases_all
+from .data import methods_all
 
 
 def parse_dft_method(method: str) -> str:
@@ -114,7 +115,7 @@ def write(
     if method not in methods_all:
         raise ValueError(method)
 
-    if basis not in all_bases:
+    if basis not in bases_all:
         raise ValueError(basis)
 
     basis = parse_heavy_basis(basis)
