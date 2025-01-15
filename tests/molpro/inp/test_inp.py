@@ -15,6 +15,7 @@ from helpro.molpro.inp import write
         ("DF-MP2", "cc-pVDZ", False),
         ("DF-MP2", "cc-pVDZ", True),
         ("DF-KS_PBE_DIRPA", "cc-pVDZ", False),
+        ("DF-KS_PBE_DIRPA", "cc-pVDZ", True),
     ],
 )
 def test_inp(*, method: str, basis: str, core: bool, tmp_path: Path) -> None:
