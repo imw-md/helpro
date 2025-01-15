@@ -67,6 +67,7 @@ def write(
     geometry: str = "initial.xyz",
     *,
     core: bool = True,
+    fname: str = "molpro.inp",
 ) -> None:
     """Write."""
     if method not in methods_all:
@@ -89,7 +90,7 @@ def write(
     )
     lines = tuple(f"{_}\n" for _ in lines)
 
-    p = Path("molpro.inp")
+    p = Path(fname)
     with p.open("w", encoding="utf-8") as f:
         for line in lines:
             if "__basis__" in line:
