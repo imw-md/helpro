@@ -23,7 +23,7 @@ def make_method_lines(method: str, *, core: bool = True) -> str:
 
     str_core = ";CORE" if core and not props.is_hf else ""
     lines = []
-    if props.is_rpa:
+    if props.is_ksrpa:
         ks = "DF-UKS_PBE" if props.is_unrestricted else "DF-KS_PBE"
         lines.append(parse_dft_method(ks))
         orb = "2200.2" if props.is_unrestricted else "2100.2"
@@ -56,9 +56,20 @@ def parse_heavy_basis(basis: str) -> str:
     return basis
 
 
-def make_basis_lines(basis: str, *, is_rpa: bool = False) -> list[str]:
+def make_basis_lines(method: str, basis: str) -> list[str]:
     """Make basis lines."""
-    if is_rpa:
+    props = methods_all[method]
+    if props.is_ksrpa:
+        lines = (
+            r"{",
+            r"SET,ORBITAL",
+            f"DEFAULT={basis}",
+            r"SET,MP2FIT",
+            f"DEFAULT={basis}",
+            r"}",
+        )
+        return "\n".join(lines)
+    if props.is_afcd:
         lines = (
             r"{",
             r"SET,ORBITAL",
@@ -83,8 +94,6 @@ def write(
     if method not in methods_all:
         raise ValueError(method)
 
-    props = methods_all[method]
-
     if basis not in all_bases:
         raise ValueError(basis)
 
@@ -104,7 +113,7 @@ def write(
     with p.open("w", encoding="utf-8") as f:
         for line in lines:
             if "__basis__" in line:
-                basis_lines = make_basis_lines(basis, is_rpa=props.is_rpa)
+                basis_lines = make_basis_lines(method, basis)
                 f.write(line.replace("__basis__", basis_lines))
             elif "__method__" in line:
                 method_lines = make_method_lines(method, core=core)

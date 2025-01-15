@@ -8,12 +8,13 @@ class MethodProperties:
     """Method properties."""
 
     name: str
+    is_afcd: bool = False
     is_df: bool = False
     is_f12: bool = False
     is_hf: bool = False  # whether this is the HF method
     is_ks: bool = False
+    is_ksrpa: bool = False
     is_pno: bool = False
-    is_rpa: bool = False
     is_unrestricted: bool = False
 
 
@@ -134,6 +135,10 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
     dict[str, MethodProperties]
         RPA methods.
 
+    Notes
+    -----
+    - `RPATDDFT` does not work with `DF-KS`.
+
     """
     methods = {}
 
@@ -141,18 +146,24 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
         "KSRPA_DIRPA",
         "KSRPA_RPAX2",
         # "KSRPA_ACFDT",
-        # "KSRPA_RIRPA",  # equivalent to ACFD_RIRPA
-        "ACFD_RIRPA",
         # "RPATDDFT",
     )
-    kwargs = {"is_ks": True, "is_rpa": True}
+    kwargs = {"is_ksrpa": True}
+    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+
+    names = ("KSRPA_URPAX2",)
+    kwargs = {"is_ksrpa": True, "is_unrestricted": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
     names = (
-        "KSRPA_URPAX2",
-        "ACFD_URIRPA",
+        # "KSRPA_RIRPA",  # equivalent to ACFD_RIRPA
+        "ACFD_RIRPA",
     )
-    kwargs = {"is_ks": True, "is_rpa": True, "is_unrestricted": True}
+    kwargs = {"is_afcd": True}
+    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+
+    names = ("ACFD_URIRPA",)
+    kwargs = {"is_afcd": True, "is_unrestricted": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
     return methods
