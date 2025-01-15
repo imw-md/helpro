@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from .bases import bases_all
-from .data import methods_all
+from .methods import methods_all
 
 
 def parse_dft_method(method: str) -> str:
