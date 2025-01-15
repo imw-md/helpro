@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from .data import all_bases, all_methods, methods_rpa
+from .data import all_bases, methods_all
 
 
 def parse_dft_method(method: str) -> str:
@@ -19,18 +19,17 @@ def parse_dft_method(method: str) -> str:
 
 def make_method_lines(method: str, *, core: bool = True) -> str:
     """Make method lines."""
+    props = methods_all[method]
+
     is_hf = method in {"HF", "DF-HF"}
-    is_df = method.startswith("DF-")
-    is_dft = method.replace("DF-", "").startswith("KS")
-    is_pno = method.replace("DF-", "").startswith("PNO")
-    is_f12 = method.endswith("-F12")
+
     str_core = ";CORE" if core and not is_hf else ""
     lines = []
-    if is_dft:
+    if props.is_ks:
         return [parse_dft_method(method)]
     if not is_hf:
-        lines.append("{DF-HF}" if is_df else "{HF}")
-    if is_pno and is_f12:
+        lines.append("{DF-HF}" if props.is_df else "{HF}")
+    if props.is_pno and props.is_f12:
         lines.append(f"{{DF-CABS{str_core}}}")
     method = method.replace("CCSD_T", "CCSD(T)")
     method = method.replace("DF-PNO", "PNO")
@@ -70,8 +69,10 @@ def write(
     core: bool = True,
 ) -> None:
     """Write."""
-    if method not in all_methods:
+    if method not in methods_all:
         raise ValueError(method)
+
+    props = methods_all[method]
 
     if basis not in all_bases:
         raise ValueError(basis)
@@ -92,8 +93,7 @@ def write(
     with p.open("w", encoding="utf-8") as f:
         for line in lines:
             if "__basis__" in line:
-                is_rpa = method in methods_rpa
-                basis_lines = make_basis_lines(basis, is_rpa=is_rpa)
+                basis_lines = make_basis_lines(basis, is_rpa=props.is_rpa)
                 f.write(line.replace("__basis__", basis_lines))
             elif "__method__" in line:
                 method_lines = make_method_lines(method, core=core)
