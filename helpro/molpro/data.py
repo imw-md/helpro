@@ -106,6 +106,7 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
 
     """
     methods = {}
+
     names = (
         "KSRPA_DIRPA",
         "KSRPA_RPAX2",
@@ -114,8 +115,16 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
         "ACFD_RIRPA",
         # "RPATDDFT",
     )
-    kwargs = {"is_rpa": True}
+    kwargs = {"is_ks": True, "is_rpa": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+
+    names = (
+        "KSRPA_URPAX2",
+        "ACFD_URIRPA",
+    )
+    kwargs = {"is_ks": True, "is_rpa": True, "is_unrestricted": True}
+    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+
     return methods
 
 

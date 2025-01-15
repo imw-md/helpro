@@ -7,7 +7,13 @@ import pytest
 from helpro.molpro.inp import write
 
 
-@pytest.mark.parametrize(("method", "basis"), [("DF-HF", "cc-pVDZ")])
+@pytest.mark.parametrize(
+    ("method", "basis"),
+    [
+        ("DF-HF", "cc-pVDZ"),
+        ("KSRPA_DIRPA", "cc-pVDZ"),
+    ],
+)
 def test_inp(method: str, basis: str, tmp_path: Path) -> None:
     """Test."""
     p = Path(__file__).parent / "data" / method / basis / "molpro.inp"

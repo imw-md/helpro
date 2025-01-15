@@ -25,8 +25,16 @@ def make_method_lines(method: str, *, core: bool = True) -> str:
 
     str_core = ";CORE" if core and not is_hf else ""
     lines = []
+    if props.is_rpa:
+        ks = "DF-UKS_PBE" if props.is_unrestricted else "DF-KS_PBE"
+        lines.append(parse_dft_method(ks))
+        orb = "2200.2" if props.is_unrestricted else "2100.2"
+        method = method.replace("_", ";")
+        lines.append(f"{{{method},ORB={orb}}}")
+        return "\n".join(lines)
     if props.is_ks:
-        return [parse_dft_method(method)]
+        lines.append(parse_dft_method(method))
+        return "\n".join(lines)
     if not is_hf:
         lines.append("{DF-HF}" if props.is_df else "{HF}")
     if props.is_pno and props.is_f12:
