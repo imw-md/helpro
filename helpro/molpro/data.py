@@ -15,7 +15,8 @@ class MethodProperties:
     is_ks: bool = False
     is_ksrpa: bool = False
     is_pno: bool = False
-    is_unrestricted: bool = False
+    is_spin_u: bool = False
+    xc: str = ""
 
 
 def _make_methods_hf() -> dict[str, MethodProperties]:
@@ -40,7 +41,7 @@ def _make_methods_hf() -> dict[str, MethodProperties]:
     methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
 
     names = tuple(f"U{_}" for _ in names_basic)
-    kwargs = {"is_hf": True, "is_unrestricted": True}
+    kwargs = {"is_hf": True, "is_spin_u": True}
     methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
 
     methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
@@ -96,31 +97,39 @@ def _make_methods_dft() -> dict[str, MethodProperties]:
     dict[str, MethodProperties]
         DFT methods.
 
+    Notes
+    -----
+    - `DF` is not available for `UKS`; only `CF` is availble.
+    - It makes less sense to add the dispersion correction to LDA
+      because LDA already has an overbinding nature.
+
     """
     methods = {}
 
-    names_basic = (
-        "KS_LDA",
-        "KS_PBE",
-        "KS_PBE-D2",
-        "KS_PBE-D3",
-        "KS_PBE-D3_BJ",
-        "KS_PBE-D4",
-    )
-    kwargs = {"is_ks": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_basic})
+    xcs = ("LDA", "PBE")
+    dispersions = ("", "-D2", "-D3", "-D3_BJ", "-D4")
+    for xc in xcs:
+        for dispersion in dispersions:
+            if xc == "LDA" and dispersion:
+                continue
+            name = f"KS_{xc}{dispersion}"
+            kwargs = {"is_ks": True, "xc": xc}
+            methods[name] = MethodProperties(name=name, **kwargs)
 
-    names_r = tuple(f"R{_}" for _ in names_basic)
-    kwargs = {"is_ks": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_r})
+            name = f"RKS_{xc}{dispersion}"
+            methods[name] = MethodProperties(name=name, **kwargs)
 
-    names_u = tuple(f"U{_}" for _ in names_basic)
-    kwargs = {"is_ks": True, "is_unrestricted": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_u})
+            name = f"UKS_{xc}{dispersion}"
+            kwargs.update(is_spin_u=True)
+            methods[name] = MethodProperties(name=name, **kwargs)
 
-    names_df = tuple(f"DF-{_}" for _ in names_basic + names_r)
-    kwargs = {"is_df": True, "is_ks": True, "is_unrestricted": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_df})
+            kwargs.update(is_df=True, is_spin_u=False)
+
+            name = f"DF-KS_{xc}{dispersion}"
+            methods[name] = MethodProperties(name=name, **kwargs)
+
+            name = f"DF-RKS_{xc}{dispersion}"
+            methods[name] = MethodProperties(name=name, **kwargs)
 
     return methods
 
@@ -137,34 +146,42 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
 
     Notes
     -----
+    - `KSRPA_ACFDT` does not work well with the present MOLPRO.
     - `RPATDDFT` does not work with `DF-KS`.
+    - `KSRPA_RIRPA` is equivalent to `ACFD_RIRPA`.
 
     """
     methods = {}
 
-    names = (
-        "KSRPA_DIRPA",
-        "KSRPA_RPAX2",
-        # "KSRPA_ACFDT",
-        # "RPATDDFT",
-    )
-    kwargs = {"is_ksrpa": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    xcs = ("LDA", "PBE")
+    for xc in xcs:
+        # KSRPA
+        names = (
+            "DIRPA",
+            "RPAX2",
+            # "ACFDT",
+        )
+        kwargs = {"is_ksrpa": True, "xc": xc}
+        d = {f"KS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        methods.update(d)
 
-    names = ("KSRPA_URPAX2",)
-    kwargs = {"is_ksrpa": True, "is_unrestricted": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+        names = ("URPAX2",)
+        kwargs.update(is_spin_u=True)
+        d = {f"UKS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        methods.update(d)
 
-    names = (
-        # "KSRPA_RIRPA",  # equivalent to ACFD_RIRPA
-        "ACFD_RIRPA",
-    )
-    kwargs = {"is_afcd": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+        # ACFD
+        names = ("RIRPA",)
+        kwargs = {"is_afcd": True, "xc": xc}
+        d = {f"KS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        methods.update(d)
 
-    names = ("ACFD_URIRPA",)
-    kwargs = {"is_afcd": True, "is_unrestricted": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+        names = ("URIRPA",)
+        kwargs.update(is_spin_u=True)
+        d = {f"UKS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        methods.update(d)
+
+    methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
 
     return methods
 

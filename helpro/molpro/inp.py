@@ -17,21 +17,37 @@ def parse_dft_method(method: str) -> str:
     return f"{{{ks},{xc}}}"
 
 
+def parse_rpa_method(method: str) -> str:
+    """Parse an RPA method."""
+    props = methods_all[method]
+    lines = []
+    if props.is_spin_u:
+        ks = f"DF-UKS_{props.xc}" if props.is_df else f"UKS_{props.xc}"
+    else:
+        ks = f"DF-KS_{props.xc}" if props.is_df else f"KS_{props.xc}"
+    lines.append(parse_dft_method(ks))
+    rpa = method.split("_")[-1]
+    orb = "2200.2" if props.is_spin_u else "2100.2"
+    if props.is_ksrpa:
+        lines.append(f"{{KSRPA;{rpa},ORB={orb}}}")
+    elif props.is_afcd:
+        lines.append(f"{{AFCD;{rpa},ORB={orb}}}")
+    else:
+        raise RuntimeError(method)
+    return "\n".join(lines)
+
+
 def make_method_lines(method: str, *, core: bool = True) -> str:
     """Make method lines."""
     props = methods_all[method]
 
     str_core = ";CORE" if core and not props.is_hf else ""
     lines = []
-    if props.is_ksrpa:
-        ks = "DF-UKS_PBE" if props.is_unrestricted else "DF-KS_PBE"
-        lines.append(parse_dft_method(ks))
-        orb = "2200.2" if props.is_unrestricted else "2100.2"
-        method = method.replace("_", ";")
-        lines.append(f"{{{method},ORB={orb}}}")
-        return "\n".join(lines)
     if props.is_ks:
         lines.append(parse_dft_method(method))
+        return "\n".join(lines)
+    if props.is_ksrpa or props.is_afcd:
+        lines.append(parse_rpa_method(method))
         return "\n".join(lines)
     if props.is_hf:
         lines.append(f"{{{method}}}")
