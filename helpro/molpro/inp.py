@@ -118,7 +118,22 @@ def write(
     core: bool = True,
     fname: str = "molpro.inp",
 ) -> None:
-    """Write."""
+    """Write MOLPRO input.
+
+    Parameters
+    ----------
+    method : str
+        Method.
+    basis : str
+        Basis set.
+    geometry : str, default: "initial.xyz"
+        Geometry file.
+    core : bool, default: True
+        True if the core is active.
+    fname : str, default: "molpro.inp"
+        Input file name.
+
+    """
     if method not in methods_all:
         raise ValueError(method)
 
