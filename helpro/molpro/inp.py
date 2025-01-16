@@ -110,7 +110,7 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
     return basis
 
 
-def write(
+def write_molpro_inp(
     method: str,
     basis: str,
     geometry: str = "initial.xyz",

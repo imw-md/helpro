@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from helpro.molpro.inp import write
+from helpro.molpro.inp import write_molpro_inp
 
 
 def get_parameters() -> list[list[str]]:
@@ -27,7 +27,7 @@ def test_inp(*, method: str, basis: str, str_core: str, tmp_path: Path) -> None:
         sref = f.read()
 
     p = tmp_path / "molpro.inp"
-    write(method=method, basis=basis, core=core, fname=p)
+    write_molpro_inp(method=method, basis=basis, core=core, fname=p)
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
 
