@@ -22,11 +22,18 @@ def parse_rpa_method(method: str, *, core: bool = True) -> str:
     """Parse an RPA method."""
     props = methods_all[method]
     lines = []
-    if props.is_spin_u:
-        ks = f"DF-UKS_{props.xc}" if props.is_df else f"UKS_{props.xc}"
+    if props.xc:
+        if props.is_spin_u:
+            ref = f"DF-UKS_{props.xc}" if props.is_df else f"UKS_{props.xc}"
+        else:
+            ref = f"DF-KS_{props.xc}" if props.is_df else f"KS_{props.xc}"
+        lines.append(parse_dft_method(ref))
     else:
-        ks = f"DF-KS_{props.xc}" if props.is_df else f"KS_{props.xc}"
-    lines.append(parse_dft_method(ks))
+        if props.is_spin_u:
+            ref = "DF-UHF" if props.is_df else "UHF"
+        else:
+            ref = "DF-HF" if props.is_df else "HF"
+        lines.append(f"{{{ref}}}")
     rpa = method.split("_")[-1]
     orb = "2200.2" if props.is_spin_u else "2100.2"
     if props.is_ksrpa:

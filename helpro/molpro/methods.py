@@ -153,7 +153,7 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
     """
     methods = {}
 
-    xcs = ("LDA", "PBE")
+    xcs = ("", "LDA", "PBE")  # "" is for the HF method.
     for xc in xcs:
         # KSRPA
         names = (
@@ -161,24 +161,25 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
             "RPAX2",
             # "ACFDT",
         )
+        ref = f"KS_{xc}" if xc else "HF"
         kwargs = {"is_ksrpa": True, "xc": xc}
-        d = {f"KS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URPAX2",)
         kwargs.update(is_spin_u=True)
-        d = {f"UKS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         # ACFD
         names = ("RIRPA",)
         kwargs = {"is_afcd": True, "xc": xc}
-        d = {f"KS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URIRPA",)
         kwargs.update(is_spin_u=True)
-        d = {f"UKS_{xc}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
     methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})

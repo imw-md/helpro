@@ -1,5 +1,6 @@
 """Tests for `molpro.py`."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -7,20 +8,20 @@ import pytest
 from helpro.molpro.inp import write
 
 
-@pytest.mark.parametrize(
-    ("method", "basis", "core"),
-    [
-        ("DF-HF", "cc-pVDZ", False),
-        ("DF-UHF", "cc-pVDZ", False),
-        ("DF-MP2", "cc-pVDZ", False),
-        ("DF-MP2", "cc-pVDZ", True),
-        ("DF-KS_PBE_DIRPA", "cc-pVDZ", False),
-        ("DF-KS_PBE_DIRPA", "cc-pVDZ", True),
-    ],
-)
-def test_inp(*, method: str, basis: str, core: bool, tmp_path: Path) -> None:
+def get_parameters() -> list[list[str]]:
+    """Get parameters."""
+    p = Path(__file__).parent / "data"
+    parameters = []
+    for root, _, files in os.walk(p):
+        if "molpro.inp" in files:
+            parameters.append(Path(root).parts[-3:])
+    return sorted(parameters)
+
+
+@pytest.mark.parametrize(("method", "basis", "str_core"), get_parameters())
+def test_inp(*, method: str, basis: str, str_core: str, tmp_path: Path) -> None:
     """Test."""
-    str_core = "active" if core else "frozen"
+    core = str_core == "active"
     p = Path(__file__).parent / "data" / method / basis / str_core / "molpro.inp"
     with p.open("r", encoding="utf-8") as f:
         sref = f.read()
