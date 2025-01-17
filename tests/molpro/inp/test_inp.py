@@ -18,11 +18,10 @@ def get_parameters() -> list[list[str]]:
     return sorted(parameters)
 
 
-@pytest.mark.parametrize(("method", "basis", "str_core"), get_parameters())
-def test_inp(*, method: str, basis: str, str_core: str, tmp_path: Path) -> None:
+@pytest.mark.parametrize(("method", "basis", "core"), get_parameters())
+def test_inp(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
     """Test."""
-    core = str_core == "active"
-    p = Path(__file__).parent / "data" / method / basis / str_core / "molpro.inp"
+    p = Path(__file__).parent / "data" / method / basis / core / "molpro.inp"
     with p.open("r", encoding="utf-8") as f:
         sref = f.read()
 

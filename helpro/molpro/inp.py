@@ -18,7 +18,7 @@ def parse_dft_method(method: str) -> str:
     return f"{{{ks},{xc}}}"
 
 
-def parse_rpa_method(method: str, *, core: bool = True) -> str:
+def parse_rpa_method(method: str, *, core: str) -> str:
     """Parse an RPA method."""
     props = methods_all[method]
     lines = []
@@ -37,10 +37,10 @@ def parse_rpa_method(method: str, *, core: bool = True) -> str:
     rpa = method.split("_")[-1]
     orb = "2200.2" if props.is_spin_u else "2100.2"
     if props.is_ksrpa:
-        str_core = ",CORE=0" if core else ""
+        str_core = ",CORE=0" if core == "active" else ""
         lines.append(f"{{KSRPA;{rpa},ORB={orb}{str_core}}}")
     elif props.is_afcd:
-        if core:
+        if core == "active":
             msg = "The active-core calculation is not available for AFCD."
             raise RuntimeError(msg)
         lines.append(f"{{AFCD;{rpa},ORB={orb}}}")
@@ -49,11 +49,11 @@ def parse_rpa_method(method: str, *, core: bool = True) -> str:
     return "\n".join(lines)
 
 
-def make_method_lines(method: str, *, core: bool = True) -> str:
+def make_method_lines(method: str, *, core: str) -> str:
     """Make method lines."""
     props = methods_all[method]
 
-    str_core = ";CORE" if core and not props.is_hf else ""
+    str_core = ";CORE" if core == "active" and not props.is_hf else ""
     lines = []
     if props.is_ks:
         lines.append(parse_dft_method(method))
@@ -115,7 +115,7 @@ def write_molpro_inp(
     basis: str,
     geometry: str = "initial.xyz",
     *,
-    core: bool = True,
+    core: str = "active",
     fname: str = "molpro.inp",
 ) -> None:
     """Write MOLPRO input.
@@ -128,8 +128,8 @@ def write_molpro_inp(
         Basis set.
     geometry : str, default: "initial.xyz"
         Geometry file.
-    core : bool, default: True
-        True if the core is active.
+    core : {"active", "frozen"}, default: "active"
+        Whether the core is active or frozen.
     fname : str, default: "molpro.inp"
         Input file name.
 
