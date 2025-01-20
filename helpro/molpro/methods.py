@@ -8,7 +8,7 @@ class MethodProperties:
     """Method properties."""
 
     name: str
-    is_afcd: bool = False
+    is_acfd: bool = False
     is_df: bool = False
     is_f12: bool = False
     is_hf: bool = False  # whether this is the HF method
@@ -173,7 +173,7 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
 
         # ACFD
         names = ("RIRPA",)
-        kwargs = {"is_afcd": True, "xc": xc}
+        kwargs = {"is_acfd": True, "xc": xc}
         d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 

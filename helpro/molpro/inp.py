@@ -39,11 +39,11 @@ def parse_rpa_method(method: str, *, core: str) -> str:
     if props.is_ksrpa:
         str_core = ",CORE=0" if core == "active" else ""
         lines.append(f"{{KSRPA;{rpa},ORB={orb}{str_core}}}")
-    elif props.is_afcd:
+    elif props.is_acfd:
         if core == "active":
             msg = "The active-core calculation is not available for AFCD."
             raise RuntimeError(msg)
-        lines.append(f"{{AFCD;{rpa},ORB={orb}}}")
+        lines.append(f"{{ACFD;{rpa},ORB={orb}}}")
     else:
         raise RuntimeError(method)
     return "\n".join(lines)
@@ -58,7 +58,7 @@ def make_method_lines(method: str, *, core: str) -> str:
     if props.is_ks:
         lines.append(parse_dft_method(method))
         return "\n".join(lines)
-    if props.is_ksrpa or props.is_afcd:
+    if props.is_ksrpa or props.is_acfd:
         lines.append(parse_rpa_method(method, core=core))
         return "\n".join(lines)
     if props.is_hf:
@@ -97,7 +97,7 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
             r"}",
         )
         return "\n".join(lines)
-    if props.is_afcd:
+    if props.is_acfd:
         lines = (
             r"{",
             r"SET,ORBITAL",
