@@ -110,12 +110,27 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
     return basis
 
 
+def validate_options(options: str | list[str] | None) -> list[str]:
+    """Validate options."""
+    if options is None:
+        options = []
+    if isinstance(options, str):
+        options = [options]
+    options = [option.upper() for option in options]
+    options_all = "FORCES", "OPTG", "COUNTERPOISE"
+    for option in options:
+        if all(not option.startswith(_) for _ in options_all):
+            raise ValueError(option)
+    return options
+
+
 def write_molpro_inp(
     method: str,
     basis: str,
-    geometry: str = "initial.xyz",
     *,
     core: str = "active",
+    options: list[str] | str | None = None,
+    geometry: str = "initial.xyz",
     fname: str = "molpro.inp",
 ) -> None:
     """Write MOLPRO input.
@@ -126,10 +141,12 @@ def write_molpro_inp(
         Method.
     basis : str
         Basis set.
-    geometry : str, default: "initial.xyz"
-        Geometry file.
     core : {"active", "frozen"}, default: "active"
         Whether the core is active or frozen.
+    options : {"FORCES", "OPTG", "COUNTERPOISE"}
+        Option(s).
+    geometry : str, default: "initial.xyz"
+        Geometry file.
     fname : str, default: "molpro.inp"
         Input file name.
 
@@ -141,6 +158,8 @@ def write_molpro_inp(
         raise ValueError(basis)
 
     basis = parse_heavy_basis(basis)
+
+    options = validate_options(options)
 
     lines = (
         r"GPRINT,ORBITALS",
@@ -163,3 +182,5 @@ def write_molpro_inp(
                 f.write(line.replace("__method__", method_lines))
             else:
                 f.write(line)
+        for option in options:
+            f.write(f"{option}\n")
