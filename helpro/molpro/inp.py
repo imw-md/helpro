@@ -30,14 +30,14 @@ def parse_dft_method(method: str, wf_directive: str = "") -> str:
     return f"{{{ks},{xc}{disp_directive}{wf_directive}}}"
 
 
-def parse_rpa_method(method: str, *, core: str) -> str:
+def parse_rpa_method(method: str, *, core: str, wf_directive: str) -> str:
     """Parse an RPA method."""
     props = methods_all[method]
     lines = []
     if props.xc:
-        lines.append(parse_dft_method(props.ref))
+        lines.append(parse_dft_method(props.ref, wf_directive))
     else:
-        lines.append(f"{{{props.ref}}}")
+        lines.append(f"{{{props.ref}{wf_directive}}}")
     rpa = method.split("_")[-1]
     orb = "2200.2" if props.is_spin_u else "2100.2"
     if props.is_ksrpa:
@@ -70,7 +70,7 @@ def make_method_lines(
         lines.append(parse_dft_method(method, wf_directive=wf_directive))
         return "\n".join(lines)
     if props.is_ksrpa or props.is_acfd:
-        lines.append(parse_rpa_method(method, core=core))
+        lines.append(parse_rpa_method(method, core=core, wf_directive=wf_directive))
         return "\n".join(lines)
     if props.is_hf:
         lines.append(f"{{{method}{wf_directive}}}")
