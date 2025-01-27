@@ -6,6 +6,18 @@ from .bases import bases_all
 from .methods import methods_all
 
 
+def make_wf_directive(charge: int | None, spin: int | None) -> str:
+    """Make the WF directive."""
+    wf = ""
+    if charge is not None or spin is not None:
+        wf = ";WF"
+        if charge is not None:
+            wf += f",CHARGE={charge}"
+        if spin is not None:
+            wf += f",SPIN={spin}"
+    return wf
+
+
 def parse_dft_method(method: str) -> str:
     """Parse a DFT method."""
     dispersion = method.split("-")[-1].replace("_BJ", ",BJ")
@@ -49,11 +61,18 @@ def parse_rpa_method(method: str, *, core: str) -> str:
     return "\n".join(lines)
 
 
-def make_method_lines(method: str, *, core: str) -> str:
+def make_method_lines(
+    method: str,
+    *,
+    core: str,
+    charge: int | None = None,
+    spin: int | None = None,
+) -> str:
     """Make method lines."""
     props = methods_all[method]
 
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
+    wf_directive = make_wf_directive(charge, spin)
     lines = []
     if props.is_ks:
         lines.append(parse_dft_method(method))
@@ -62,10 +81,11 @@ def make_method_lines(method: str, *, core: str) -> str:
         lines.append(parse_rpa_method(method, core=core))
         return "\n".join(lines)
     if props.is_hf:
-        lines.append(f"{{{method}}}")
+        lines.append(f"{{{method}{wf_directive}}}")
         return "\n".join(lines)
 
-    lines.append("{DF-HF}" if props.is_df else "{HF}")
+    method_hf = "DF-HF" if props.is_df else "HF"
+    lines.append(f"{{{method_hf}{wf_directive}}}")
     if props.is_pno and props.is_f12:
         lines.append(f"{{DF-CABS{str_core}}}")
     method = method.replace("CCSD_T", "CCSD(T)")
@@ -129,6 +149,8 @@ def write_molpro_inp(
     basis: str,
     *,
     core: str = "active",
+    charge: int | None = None,
+    spin: int | None = None,
     options: list[str] | str | None = None,
     geometry: str = "initial.xyz",
     fname: str = "molpro.inp",
@@ -143,6 +165,10 @@ def write_molpro_inp(
         Basis set.
     core : {"active", "frozen"}, default: "active"
         Whether the core is active or frozen.
+    charge : int | None, default: None
+        Charge.
+    spin : int | None, default: None
+        Spin.
     options : {"FORCES", "OPTG", "COUNTERPOISE"}
         Option(s).
     geometry : str, default: "initial.xyz"
@@ -178,7 +204,12 @@ def write_molpro_inp(
                 basis_lines = make_basis_lines(method, basis)
                 f.write(line.replace("__basis__", basis_lines))
             elif "__method__" in line:
-                method_lines = make_method_lines(method, core=core)
+                method_lines = make_method_lines(
+                    method,
+                    core=core,
+                    charge=charge,
+                    spin=spin,
+                )
                 f.write(line.replace("__method__", method_lines))
             else:
                 f.write(line)

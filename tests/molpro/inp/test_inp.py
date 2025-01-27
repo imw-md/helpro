@@ -33,6 +33,26 @@ def test_inp(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
     assert s == sref
 
 
+def test_charge_and_spin(tmp_path: Path) -> None:
+    """Test CHARGE and SPIN."""
+    lines = (
+        r"GPRINT,ORBITALS",
+        r"NOSYM",
+        r"ANGSTROM",
+        r"GEOMETRY=initial.xyz",
+        r"BASIS=cc-pVDZ",
+        r"{HF;WF,CHARGE=0,SPIN=1}",
+    )
+    sref = "".join(f"{_}\n" for _ in lines)
+
+    p = tmp_path / "molpro.inp"
+    write_molpro_inp(method="HF", basis="cc-pVDZ", charge=0, spin=1, fname=p)
+    with p.open("r", encoding="utf-8") as f:
+        s = f.read()
+
+    assert s == sref
+
+
 def test_options(tmp_path: Path) -> None:
     """Test if options can be provided."""
     lines = (
