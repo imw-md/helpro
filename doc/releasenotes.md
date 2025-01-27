@@ -4,6 +4,11 @@ https://semver.org/
 
 https://keepachangelog.com/
 
+## 0.3.0 (2025-01-27)
+
+- Added `CHARGE` and `SPIN`
+- Fixed typo for `is_acfd`
+
 ## 0.2.0 (2025-01-17)
 
 - Added `read_molpro_out`
