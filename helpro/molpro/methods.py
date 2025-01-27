@@ -17,6 +17,7 @@ class MethodProperties:
     is_pno: bool = False
     is_spin_u: bool = False
     xc: str = ""
+    ref: str = ""  # reference method name for post-HF and post-KS
 
 
 def _make_methods_hf() -> dict[str, MethodProperties]:
@@ -65,23 +66,23 @@ def _make_methods_post_hf() -> dict[str, MethodProperties]:
         "CCSD",
         "CCSD_T",
     )
-    kwargs = {}
+    kwargs = {"ref": "HF"}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_ps})
 
     names = tuple(f"DF-{_}" for _ in names_ps)
-    kwargs = {"is_df": True}
+    kwargs = {"ref": "DF-HF", "is_df": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-{_}-F12" for _ in names_ps)
-    kwargs = {"is_df": True, "is_f12": True}
+    kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}" for _ in names_ps)
-    kwargs = {"is_df": True, "is_pno": True}
+    kwargs = {"ref": "DF-HF", "is_df": True, "is_pno": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}-F12" for _ in names_ps)
-    kwargs = {"is_df": True, "is_f12": True, "is_pno": True}
+    kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True, "is_pno": True}
     methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
 
     return methods
@@ -162,18 +163,18 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
             # "ACFDT",
         )
         ref = f"KS_{xc}" if xc else "HF"
-        kwargs = {"is_ksrpa": True, "xc": xc}
+        kwargs = {"ref": ref, "is_ksrpa": True, "xc": xc}
         d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URPAX2",)
-        kwargs.update(is_spin_u=True)
+        kwargs.update(ref=f"U{ref}", is_spin_u=True)
         d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         # ACFD
         names = ("RIRPA",)
-        kwargs = {"is_acfd": True, "xc": xc}
+        kwargs = {"ref": ref, "is_acfd": True, "xc": xc}
         d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
@@ -182,7 +183,10 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
         d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
         methods.update(d)
 
-    methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
+    def _replace_df(v: MethodProperties) -> MethodProperties:
+        return replace(v, ref=f"DF-{v.ref}", is_df=True)
+
+    methods.update({f"DF-{k}": _replace_df(v) for k, v in methods.items()})
 
     return methods
 

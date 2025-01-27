@@ -35,17 +35,9 @@ def parse_rpa_method(method: str, *, core: str) -> str:
     props = methods_all[method]
     lines = []
     if props.xc:
-        if props.is_spin_u:
-            ref = f"DF-UKS_{props.xc}" if props.is_df else f"UKS_{props.xc}"
-        else:
-            ref = f"DF-KS_{props.xc}" if props.is_df else f"KS_{props.xc}"
-        lines.append(parse_dft_method(ref))
+        lines.append(parse_dft_method(props.ref))
     else:
-        if props.is_spin_u:
-            ref = "DF-UHF" if props.is_df else "UHF"
-        else:
-            ref = "DF-HF" if props.is_df else "HF"
-        lines.append(f"{{{ref}}}")
+        lines.append(f"{{{props.ref}}}")
     rpa = method.split("_")[-1]
     orb = "2200.2" if props.is_spin_u else "2100.2"
     if props.is_ksrpa:
@@ -84,8 +76,7 @@ def make_method_lines(
         lines.append(f"{{{method}{wf_directive}}}")
         return "\n".join(lines)
 
-    method_hf = "DF-HF" if props.is_df else "HF"
-    lines.append(f"{{{method_hf}{wf_directive}}}")
+    lines.append(f"{{{props.ref}{wf_directive}}}")
     if props.is_pno and props.is_f12:
         lines.append(f"{{DF-CABS{str_core}}}")
     method = method.replace("CCSD_T", "CCSD(T)")
