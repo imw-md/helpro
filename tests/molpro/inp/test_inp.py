@@ -8,9 +8,9 @@ import pytest
 from helpro.molpro.inp import write_molpro_inp
 
 
-def get_parameters() -> list[list[str]]:
+def get_parameters_basic() -> list[list[str]]:
     """Get parameters."""
-    p = Path(__file__).parent / "data"
+    p = Path(__file__).parent / "data" / "basic"
     parameters = []
     for root, _, files in os.walk(p):
         if "molpro.inp" in files:
@@ -18,10 +18,11 @@ def get_parameters() -> list[list[str]]:
     return sorted(parameters)
 
 
-@pytest.mark.parametrize(("method", "basis", "core"), get_parameters())
-def test_inp(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
-    """Test."""
-    p = Path(__file__).parent / "data" / method / basis / core / "molpro.inp"
+@pytest.mark.parametrize(("method", "basis", "core"), get_parameters_basic())
+def test_basic(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
+    """Test basic input files."""
+    p = Path(__file__).parent / "data" / "basic"
+    p = p / method / basis / core / "molpro.inp"
     with p.open("r", encoding="utf-8") as f:
         sref = f.read()
 
