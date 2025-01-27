@@ -18,16 +18,16 @@ def make_wf_directive(charge: int | None, spin: int | None) -> str:
     return wf
 
 
-def parse_dft_method(method: str) -> str:
+def parse_dft_method(method: str, wf_directive: str = "") -> str:
     """Parse a DFT method."""
     dispersion = method.split("-")[-1].replace("_BJ", ",BJ")
     is_dispersion = dispersion in {"D2", "D3", "D3,BJ", "D4"}
+    ks, xc = method.split("_")[:2]
+    disp_directive = ""
     if is_dispersion:
-        ks, xc = method.split("_")[:2]
         xc = xc.split("-")[0]
-        return f"{{{ks},{xc};DISP,{dispersion}}}"
-    ks, xc = method.split("_")
-    return f"{{{ks},{xc}}}"
+        disp_directive = f";DISP,{dispersion}"
+    return f"{{{ks},{xc}{disp_directive}{wf_directive}}}"
 
 
 def parse_rpa_method(method: str, *, core: str) -> str:
@@ -75,7 +75,7 @@ def make_method_lines(
     wf_directive = make_wf_directive(charge, spin)
     lines = []
     if props.is_ks:
-        lines.append(parse_dft_method(method))
+        lines.append(parse_dft_method(method, wf_directive=wf_directive))
         return "\n".join(lines)
     if props.is_ksrpa or props.is_acfd:
         lines.append(parse_rpa_method(method, core=core))
