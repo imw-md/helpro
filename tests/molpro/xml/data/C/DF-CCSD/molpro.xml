@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <jobstep command="DF-HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="C" x3="0.0" y3="0.0" z3="0.0"/>
+    </cml:atomArray>
+    <cml:bondArray>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-37.682415354712"/>
+   <property name="One-electron energy" method="RHF" value="-50.4470765864373"/>
+   <property name="Two-electron energy" method="RHF" value="12.7646612317253"/>
+   <property name="Kinetic energy" method="RHF" value="37.6824185181963"/>
+   <property name="Nuclear energy" method="RHF" value="0.0"/>
+   <property name="Virial quotient" method="RHF" value="-0.9999999160488"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="-0.613255696364592E-16 -0.289803270278714E-15 -0.277765821759989E-15"/>
+   <time start="01:28:19" end="01:28:22" cpu="1.53" system="2.0" real="3.62"/>
+   <storage units="megabyte" memory="0.0" sf="0.04" df="347.55" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-HF/cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="DF-CCSD" commandset="CCSD">
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-37.6824178813151"/>
+   <property name="energy" method="RHF-RMP2 correlation" stateSymmetry="1" stateNumber="1"
+     value="-0.555091678206153E-01"/>
+   <property name="energy" method="RHF-RMP2" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-37.7379270491357"/>
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-37.6824178813151"/>
+   <property name="energy" method="UCCSD singles" stateSymmetry="1" stateNumber="1"
+     value="-0.33387175378387E-02"/>
+   <property name="energy" method="UCCSD pair" stateSymmetry="1" stateNumber="1"
+     value="-0.735861173091268E-01"/>
+   <property name="energy" method="UCCSD correlation" stateSymmetry="1" stateNumber="1"
+     value="-0.769248348469655E-01"/>
+   <property name="energy" method="RHF-UCCSD" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-37.759342716162"/>
+   <time start="01:28:22" end="01:28:22" cpu="0.26" system="0.13" real="0.42"/>
+   <storage units="megabyte" memory="0.0" sf="0.19" df="349.07" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-CCSD/cc-pVDZ"/>
+  </jobstep>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2024-06-25T01:28:22+02:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform>
+   <version major="2021" minor="3" SHA="8b8f1fffdd8ed686b3bdbdb000c23abeeca3c440"
+     integer_bits="64" parallelism="mpp">
+    2021.3
+    <date year="2024" month="6" day="25" hour="1" minute="28" second="19">
+     2024-06-25T01:28:19
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="512" nprim="2" ncol="100"/>
+  </platform>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=initial.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/2022/CCSD_MLIP_AF/data/molpro/sp/atoms/C/DF-CCSD/cc-pVDZ/c+0/s+0/initial.xyz"/>
+   <p>BASIS=cc-pVDZ</p>
+   <p>{DF-HF}</p>
+   <p>{DF-CCSD}</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>

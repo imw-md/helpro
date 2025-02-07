@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <jobstep command="HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="O" x3="-0.702196054" y3="-0.56060256E-01"
+       z3="0.9942262E-02"/>
+     <cml:atom id="a2" elementType="H" x3="-1.022193224" y3="0.846775782" z3="-0.11488714E-01"/>
+     <cml:atom id="a3" elementType="H" x3="0.257521062" y3="0.42121496E-01" z3="0.5218999E-02"/>
+    </cml:atomArray>
+    <cml:bondArray>
+     <cml:bond atomRefs2="a1 a2"/>
+     <cml:bond atomRefs2="a1 a3"/>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-76.0410814971303"/>
+   <property name="One-electron energy" method="RHF" value="-122.906302679718"/>
+   <property name="Two-electron energy" method="RHF" value="37.7085070494855"/>
+   <property name="Kinetic energy" method="RHF" value="75.9120664082158"/>
+   <property name="Nuclear energy" method="RHF" value="9.15671413310247"/>
+   <property name="Virial quotient" method="RHF" value="-1.00169953335509"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="0.425912036488382 0.668768213458681 -0.174697859146186E-01"/>
+   <time start="13:54:40" end="13:54:44" cpu="1.17" system="2.51" real="5.26"/>
+   <storage units="megabyte" memory="0.0" sf="0.0" df="350.4" eaf="49.81" ga="0.0"/>
+   <summary overall_method="HF/aug-cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="CCSD(T)" commandset="CCSD">
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-76.0410814971303"/>
+   <property name="singlet pair energy" method="CCSD" stateSymmetry="1" stateNumber="1"
+     value="-0.153362778144405"/>
+   <property name="triplet pair energy" method="CCSD" stateSymmetry="1" stateNumber="1"
+     value="-0.741410558485826E-01"/>
+   <property name="correlation energy" method="CCSD" stateSymmetry="1" stateNumber="1"
+     value="-0.227503964130492"/>
+   <property name="contribution" method="Triples (T)" stateSymmetry="1" stateNumber="1"
+     value="-0.524266917653973E-02"/>
+   <property name="correlation energy" method="Total" stateSymmetry="1" stateNumber="1"
+     value="-0.232746633307032"/>
+   <property name="total energy" method="CCSD" stateSymmetry="1" stateNumber="1"
+     value="-76.2685854612608"/>
+   <property name="energy" method="CCSD[T]" stateSymmetry="1" stateNumber="1"
+     value="-76.2742325157"/>
+   <property name="energy" method="CCSD-T" stateSymmetry="1" stateNumber="1"
+     value="-76.273661268626"/>
+   <property name="total energy" method="CCSD(T)" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-76.2738281304373"/>
+   <time start="13:54:44" end="13:54:44" cpu="0.13" system="0.03" real="0.24"/>
+   <storage units="megabyte" memory="0.0" sf="2.03" df="361.76" eaf="49.81" ga="0.0"/>
+   <summary overall_method="CCSD(T)/aug-cc-pVDZ"/>
+  </jobstep>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2024-07-10T13:54:44+02:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform>
+   <version major="2021" minor="3" SHA="8b8f1fffdd8ed686b3bdbdb000c23abeeca3c440"
+     integer_bits="64" parallelism="mpp">
+    2021.3
+    <date year="2024" month="7" day="10" hour="13" minute="54" second="40">
+     2024-07-10T13:54:40
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="512" nprim="2" ncol="100"/>
+  </platform>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>NOSYM</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=molpro.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/2022/CCSD_MLIP_AF/data/molpro/sp/20_s66x8/CCSD_T/aug-cc-pVDZ/Water-Water_1/molpro.xyz"/>
+   <p>BASIS=aug-cc-pVDZ</p>
+   <p>{HF}</p>
+   <p>{CCSD(T)}</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>

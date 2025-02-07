@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <jobstep command="DF-HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="O" x3="-0.702196054" y3="-0.56060256E-01"
+       z3="0.9942262E-02"/>
+     <cml:atom id="a2" elementType="H" x3="-1.022193224" y3="0.846775782" z3="-0.11488714E-01"/>
+     <cml:atom id="a3" elementType="H" x3="0.257521062" y3="0.42121496E-01" z3="0.5218999E-02"/>
+    </cml:atomArray>
+    <cml:bondArray>
+     <cml:bond atomRefs2="a1 a2"/>
+     <cml:bond atomRefs2="a1 a3"/>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-76.0410611099744"/>
+   <property name="One-electron energy" method="RHF" value="-122.906276706456"/>
+   <property name="Two-electron energy" method="RHF" value="37.7085014633793"/>
+   <property name="Kinetic energy" method="RHF" value="75.9120663014821"/>
+   <property name="Nuclear energy" method="RHF" value="9.15671413310247"/>
+   <property name="Virial quotient" method="RHF" value="-1.00169926620071"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="0.425929723270547 0.668795244442383 -0.17470492457755E-01"/>
+   <time start="12:02:55" end="12:02:58" cpu="1.8" system="1.87" real="3.77"/>
+   <storage units="megabyte" memory="0.0" sf="0.33" df="350.4" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-HF/aug-cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="PNO-LCCSD" commandset="PNO">
+   <property name="" method="Reference energy" stateSymmetry="1" stateNumber="1"
+     value="-76.0410611099744"/>
+   <property name="" method="PNO-LMP2 correlation energy" stateSymmetry="1" stateNumber="1"
+     value="-0.219732274636203 -0.219732396246616"/>
+   <property name="" method="PNO-LMP2 total energy" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-76.2607933846106 -76.260793506221"/>
+   <property name="" method="PNO-LMP2 correlation energy" stateSymmetry="1" stateNumber="1"
+     value="-0.219712749526864 -0.219732396246616"/>
+   <property name="" method="PNO-LMP2 total energy" stateSymmetry="1" stateNumber="1"
+     value="-76.2607738595013 -76.260793506221"/>
+   <property name="" method="PNO-LMP2 domain correction" stateSymmetry="1" stateNumber="1"
+     value="-0.196467197513261E-04"/>
+   <property name="" method="PNO-RMP2 Correlation Energy" stateSymmetry="1" stateNumber="1"
+     value="-0.219712906166953"/>
+   <property name="" method="Reference energy" stateSymmetry="1" stateNumber="1"
+     value="-76.0410611099744"/>
+   <property name="" method="PNO-LCCSD singles energy" stateSymmetry="1" stateNumber="1"
+     value="0.100523173348791E-03"/>
+   <property name="" method="PNO-LCCSD strong pair energy" stateSymmetry="1" stateNumber="1"
+     value="-0.227694023306904"/>
+   <property name="" method="PNO-LCCSD close pair energy" stateSymmetry="1" stateNumber="1"
+     value="0.0"/>
+   <property name="" method="PNO-LCEPA(2) weak pair energy" stateSymmetry="1"
+     stateNumber="1" value="0.0"/>
+   <property name="" method="PNO-LMP2 distant pair energy" stateSymmetry="1" stateNumber="1"
+     value="0.0"/>
+   <property name="" method="PNO-SCS-LMP2 distant pair energy" stateSymmetry="1"
+     stateNumber="1" value="0.0"/>
+   <property name="" method="PNO-LMP2 correction" stateSymmetry="1" stateNumber="1"
+     value="-0.196467197513261E-04"/>
+   <property name="" method="PNO-LCCSD correlation energy" stateSymmetry="1" stateNumber="1"
+     value="-0.227613146853307"/>
+   <property name="" method="PNO-LCCSD total energy" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-76.2686742568277"/>
+   <time start="12:02:58" end="12:02:58" cpu="0.34" system="0.09" real="0.45"/>
+   <storage units="megabyte" memory="0.0" sf="12.28" df="350.56" eaf="0.0" ga="0.0"/>
+   <summary overall_method="PNO-LCCSD/aug-cc-pVDZ"/>
+  </jobstep>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2023-09-11T12:02:58+02:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform>
+   <version major="2021" minor="3" SHA="8b8f1fffdd8ed686b3bdbdb000c23abeeca3c440"
+     integer_bits="64" parallelism="mpp">
+    2021.3
+    <date year="2023" month="9" day="11" hour="12" minute="2" second="55">
+     2023-09-11T12:02:55
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="512" nprim="2" ncol="100"/>
+  </platform>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>NOSYM</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=molpro.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/2022/CCSD_MLIP_AF/data/molpro/sp/20_s66x8/PNO-LCCSD/aug-cc-pVDZ/Water-Water_1/molpro.xyz"/>
+   <p>BASIS=aug-cc-pVDZ</p>
+   <p>{DF-HF}</p>
+   <p>{PNO-LCCSD}</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>

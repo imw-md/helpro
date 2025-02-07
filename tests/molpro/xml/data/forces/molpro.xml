@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <jobstep command="DF-HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="C" x3="-0.69230083" y3="-1.19908784" z3="0.0"/>
+     <cml:atom id="a2" elementType="C" x3="0.69230083" y3="-1.19908784" z3="0.0"/>
+     <cml:atom id="a3" elementType="C" x3="-1.38459157" y3="0.0" z3="0.0"/>
+     <cml:atom id="a4" elementType="C" x3="1.38459157" y3="0.0" z3="0.0"/>
+     <cml:atom id="a5" elementType="C" x3="-0.69230083" y3="1.19908784" z3="0.0"/>
+     <cml:atom id="a6" elementType="C" x3="0.69230083" y3="1.19908784" z3="0.0"/>
+     <cml:atom id="a7" elementType="H" x3="-1.2325236" y3="-2.13480325" z3="0.0"/>
+     <cml:atom id="a8" elementType="H" x3="1.2325236" y3="-2.13480325" z3="0.0"/>
+     <cml:atom id="a9" elementType="H" x3="-2.46506409" y3="0.0" z3="0.0"/>
+     <cml:atom id="a10" elementType="H" x3="2.46506409" y3="0.0" z3="0.0"/>
+     <cml:atom id="a11" elementType="H" x3="-1.2325236" y3="2.13480325" z3="0.0"/>
+     <cml:atom id="a12" elementType="H" x3="1.2325236" y3="2.13480325" z3="0.0"/>
+    </cml:atomArray>
+    <cml:bondArray>
+     <cml:bond atomRefs2="a1 a2"/>
+     <cml:bond atomRefs2="a1 a3"/>
+     <cml:bond atomRefs2="a2 a4"/>
+     <cml:bond atomRefs2="a3 a5"/>
+     <cml:bond atomRefs2="a4 a6"/>
+     <cml:bond atomRefs2="a5 a6"/>
+     <cml:bond atomRefs2="a1 a7"/>
+     <cml:bond atomRefs2="a2 a8"/>
+     <cml:bond atomRefs2="a3 a9"/>
+     <cml:bond atomRefs2="a4 a10"/>
+     <cml:bond atomRefs2="a5 a11"/>
+     <cml:bond atomRefs2="a6 a12"/>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-230.727853871545"/>
+   <property name="One-electron energy" method="RHF" value="-715.974804123242"/>
+   <property name="Two-electron energy" method="RHF" value="280.376166810189"/>
+   <property name="Kinetic energy" method="RHF" value="230.728427063688"/>
+   <property name="Nuclear energy" method="RHF" value="204.870783441508"/>
+   <property name="Virial quotient" method="RHF" value="-0.999997515728123"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="0.188949498950743E-11 0.280268939566869E-11 -0.843386210296502E-14"/>
+   <time start="13:19:38" end="13:19:42" cpu="2.47" system="2.12" real="4.71"/>
+   <storage units="megabyte" memory="0.0" sf="37.34" df="402.15" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-HF/aug-cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="DF-MP2" commandset="CCSD">
+   <property name="total energy" method="SCS-MP2" stateSymmetry="1" stateNumber="1"
+     value="-231.51353046817"/>
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-230.727853871544"/>
+   <property name="singlet pair energy" method="MP2" stateSymmetry="1" stateNumber="1"
+     value="-0.489693423704009"/>
+   <property name="triplet pair energy" method="MP2" stateSymmetry="1" stateNumber="1"
+     value="-0.318285784576546"/>
+   <property name="correlation energy" method="MP2" stateSymmetry="1" stateNumber="1"
+     value="-0.807979208280555"/>
+   <property name="total energy" method="MP2" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-231.535833079825"/>
+   <property name="Dipole moment" method="MP2" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="-0.120112345547083E-08 -0.249623516735548E-08 -0.78517946279943E-14"/>
+   <time start="13:19:42" end="13:19:46" cpu="3.28" system="0.21" real="3.56"/>
+   <storage units="megabyte" memory="0.0" sf="283.43" df="402.15" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-MP2/aug-cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="FORCES" commandset="FORCES">
+   <gradient name="DF-MP2 GRADIENT" stateSymmetry="1" stateNumber="1"
+     virial="-0.493153020618499">
+      0.006814611240   0.011829455389  -0.000000000101
+     -0.006814633022   0.011829463841  -0.000000000023
+      0.013665646787  -0.000000029613   0.000000000082
+     -0.013665640575  -0.000000008761  -0.000000000114
+      0.006814589983  -0.011829452676   0.000000000051
+     -0.006814571165  -0.011829453103   0.000000000105
+      0.004988405676   0.008638615291  -0.000000000020
+     -0.004988410648   0.008638610660  -0.000000000001
+      0.009969982562  -0.000000010202   0.000000000025
+     -0.009969980116  -0.000000004827   0.000000000009
+      0.004988385334  -0.008638592962  -0.000000000005
+     -0.004988386055  -0.008638593036  -0.000000000008
+   </gradient>
+   <time start="13:19:46" end="13:19:46" cpu="0.05" system="0.01" real="0.06"/>
+   <storage units="megabyte" memory="0.0" sf="283.43" df="402.15" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-MP2/aug-cc-pVDZ"/>
+  </jobstep>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2023-08-18T13:19:46+02:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform>
+   <version major="2021" minor="3" SHA="8b8f1fffdd8ed686b3bdbdb000c23abeeca3c440"
+     integer_bits="64" parallelism="mpp">
+    2021.3
+    <date year="2023" month="8" day="18" hour="13" minute="19" second="38">
+     2023-08-18T13:19:38
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="512" nprim="2" ncol="100"/>
+  </platform>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>NOSYM</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=molpro.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/2022/CCSD_MLIP_AF/data/molpro/tblite-ase/4000/md/ChemSpider_3D/sp/DF-MP2/aug-cc-pVDZ/236/00000/molpro.xyz"/>
+   <p>BASIS=aug-cc-pVDZ</p>
+   <p>{DF-HF}</p>
+   <p>{DF-MP2}</p>
+   <p>FORCES</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>
