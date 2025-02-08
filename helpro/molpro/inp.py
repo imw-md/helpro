@@ -1,6 +1,6 @@
 """Molpro."""
 
-from dataclasses import KW_ONLY, dataclass
+from dataclasses import KW_ONLY, dataclass, field
 from pathlib import Path
 
 from .bases import bases_all
@@ -137,6 +137,23 @@ def validate_options(options: str | list[str] | None) -> list[str]:
 
 
 @dataclass(slots=True)
+class MolproInputGeometry:
+    """Geometry for MOLPRO input file."""
+
+    fname: str = "initial.xyz"
+    _: KW_ONLY
+    dummies: list[int] | None = None
+
+    def make_lines(self) -> str:
+        """Make lines related to `GEOMETRY`."""
+        lines = [r"ANGSTROM"]
+        lines.append(f"GEOMETRY={self.fname}")
+        if self.dummies:
+            lines.append("DUMMY," + ",".join(str(_) for _ in self.dummies))
+        return "\n".join(lines)
+
+
+@dataclass(slots=True)
 class MolproInputWriter:
     """Writer of MOLPRO input file.
 
@@ -163,10 +180,15 @@ class MolproInputWriter:
     basis: str
     _: KW_ONLY
     core: str = "active"
-    geometry: str = "initial.xyz"
+    geometry: MolproInputGeometry = field(default_factory=MolproInputGeometry)
     charge: int | None = None
     spin: int | None = None
     options: list[str] | str | None = None
+
+    def __post_init__(self) -> None:
+        """Post-process attributes."""
+        if isinstance(self.geometry, str):
+            self.geometry = MolproInputGeometry(self.geometry)
 
     def write(self, fname: str | None = None) -> None:
         """Write MOLPRO input file.
@@ -191,8 +213,7 @@ class MolproInputWriter:
         lines = (
             r"GPRINT,ORBITALS",
             r"NOSYM",
-            r"ANGSTROM",
-            f"GEOMETRY={self.geometry}",
+            self.geometry.make_lines(),
             r"BASIS=__basis__",
             r"__method__",
         )
