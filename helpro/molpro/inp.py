@@ -1,5 +1,6 @@
 """Molpro."""
 
+from dataclasses import KW_ONLY, dataclass
 from pathlib import Path
 
 from .bases import bases_all
@@ -135,20 +136,11 @@ def validate_options(options: str | list[str] | None) -> list[str]:
     return options
 
 
-def write_molpro_inp(
-    method: str,
-    basis: str,
-    *,
-    core: str = "active",
-    charge: int | None = None,
-    spin: int | None = None,
-    options: list[str] | str | None = None,
-    geometry: str = "initial.xyz",
-    fname: str = "molpro.inp",
-) -> None:
-    """Write MOLPRO input.
+@dataclass(slots=True)
+class MolproInputWriter:
+    """Writer of MOLPRO input file.
 
-    Parameters
+    Attributes
     ----------
     method : str
         Method.
@@ -164,45 +156,68 @@ def write_molpro_inp(
         Option(s).
     geometry : str, default: "initial.xyz"
         Geometry file.
-    fname : str, default: "molpro.inp"
-        Input file name.
 
     """
-    if method not in methods_all:
-        raise ValueError(method)
 
-    if basis not in bases_all:
-        raise ValueError(basis)
+    method: str
+    basis: str
+    _: KW_ONLY
+    core: str = "active"
+    geometry: str = "initial.xyz"
+    charge: int | None = None
+    spin: int | None = None
+    options: list[str] | str | None = None
 
-    basis = parse_heavy_basis(basis)
+    def write(self, fname: str | None = None) -> None:
+        """Write MOLPRO input file.
 
-    options = validate_options(options)
+        Parameters
+        ----------
+        fname : str, default: "molpro.inp"
+            Input file name.
 
-    lines = (
-        r"GPRINT,ORBITALS",
-        r"NOSYM",
-        r"ANGSTROM",
-        f"GEOMETRY={geometry}",
-        r"BASIS=__basis__",
-        r"__method__",
-    )
-    lines = tuple(f"{_}\n" for _ in lines)
+        """
+        if fname is None:
+            fname = "molpro.inp"
 
-    p = Path(fname)
-    with p.open("w", encoding="utf-8") as f:
-        for line in lines:
-            if "__basis__" in line:
-                basis_lines = make_basis_lines(method, basis)
-                f.write(line.replace("__basis__", basis_lines))
-            elif "__method__" in line:
-                method_lines = make_method_lines(
-                    method,
-                    core=core,
-                    charge=charge,
-                    spin=spin,
-                )
-                f.write(line.replace("__method__", method_lines))
-            else:
-                f.write(line)
-        for option in options:
-            f.write(f"{option}\n")
+        if self.method not in methods_all:
+            raise ValueError(self.method)
+
+        if self.basis not in bases_all:
+            raise ValueError(self.basis)
+
+        self.options = validate_options(self.options)
+
+        lines = (
+            r"GPRINT,ORBITALS",
+            r"NOSYM",
+            r"ANGSTROM",
+            f"GEOMETRY={self.geometry}",
+            r"BASIS=__basis__",
+            r"__method__",
+        )
+        lines = tuple(f"{_}\n" for _ in lines)
+
+        basis_lines = make_basis_lines(
+            self.method,
+            parse_heavy_basis(self.basis),
+        )
+
+        method_lines = make_method_lines(
+            self.method,
+            core=self.core,
+            charge=self.charge,
+            spin=self.spin,
+        )
+
+        p = Path(fname)
+        with p.open("w", encoding="utf-8") as f:
+            for line in lines:
+                if "__basis__" in line:
+                    f.write(line.replace("__basis__", basis_lines))
+                elif "__method__" in line:
+                    f.write(line.replace("__method__", method_lines))
+                else:
+                    f.write(line)
+            for option in self.options:
+                f.write(f"{option}\n")

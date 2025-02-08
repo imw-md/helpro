@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from helpro.molpro.inp import write_molpro_inp
+from helpro.molpro.inp import MolproInputWriter
 
 
 def get_parameters_basic() -> list[list[str]]:
@@ -27,7 +27,8 @@ def test_basic(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
         sref = f.read()
 
     p = tmp_path / "molpro.inp"
-    write_molpro_inp(method=method, basis=basis, core=core, fname=p)
+    miw = MolproInputWriter(method=method, basis=basis, core=core)
+    miw.write(fname=p)
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
 
@@ -53,7 +54,8 @@ def test_charge_and_spin(*, method: str, basis: str, core: str, tmp_path: Path) 
         sref = f.read()
 
     p = tmp_path / "molpro.inp"
-    write_molpro_inp(method=method, basis=basis, core=core, charge=0, spin=1, fname=p)
+    miw = MolproInputWriter(method=method, basis=basis, core=core, charge=0, spin=1)
+    miw.write(fname=p)
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
 
@@ -74,7 +76,8 @@ def test_options(tmp_path: Path) -> None:
     sref = "".join(f"{_}\n" for _ in lines)
 
     p = tmp_path / "molpro.inp"
-    write_molpro_inp(method="HF", basis="cc-pVDZ", options="COUNTERPOISE", fname=p)
+    miw = MolproInputWriter(method="HF", basis="cc-pVDZ", options="COUNTERPOISE")
+    miw.write(fname=p)
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
 
