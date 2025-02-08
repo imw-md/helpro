@@ -4,6 +4,12 @@ https://semver.org/
 
 https://keepachangelog.com/
 
+## 0.4.0 (2025-02-08)
+
+- Added `read_molpro_xml`
+- Added `counterpoise`
+- Changed `write_molpro_inp` to `MolproInputWriter`
+
 ## 0.3.0 (2025-01-27)
 
 - Added `CHARGE` and `SPIN`
