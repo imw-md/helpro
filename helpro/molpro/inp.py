@@ -143,13 +143,18 @@ class MolproInputGeometry:
     fname: str = "initial.xyz"
     _: KW_ONLY
     dummies: list[int] | None = None
+    skip: bool = False
 
     def make_lines(self) -> str:
         """Make lines related to `GEOMETRY`."""
         lines = [r"ANGSTROM"]
         lines.append(f"GEOMETRY={self.fname}")
         if self.dummies:
-            lines.append("DUMMY," + ",".join(str(_) for _ in self.dummies))
+            line = "DUMMY,"
+            if self.skip:
+                line += "SKIP,"
+            line += ",".join(str(_) for _ in self.dummies)
+            lines.append(line)
         return "\n".join(lines)
 
 
