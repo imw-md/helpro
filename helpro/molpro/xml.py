@@ -83,7 +83,10 @@ class MolproXMLParser:
         symbols = []
         positions = []
         for child in atom_array:
-            symbols.append(child.attrib["elementType"])
+            symbol = child.attrib["elementType"]
+            if symbol == "Du":
+                symbol = "X"
+            symbols.append(symbol)
             positions.append([float(child.attrib[_]) for _ in ["x3", "y3", "z3"]])
         if not self.is_angstrom:
             positions = np.array(positions) / Angstrom

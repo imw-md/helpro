@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2025-02-08T14:20:55+01:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform pid="3251451">
+   <version major="2024" minor="1" SHA="675817fde4514a4a933b69e420913a90cee4ef91"
+     integer_bits="64" parallelism="mpp">
+    2024.1
+    <date year="2025" month="2" day="8" hour="14" minute="20" second="55">
+     2025-02-08T14:20:55
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="1024" nprim="2" ncol="100"/>
+  </platform>
+  <jobstep command="DF-HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="C" x3="0.712645325" y3="1.120995701" z3="0.60540783E-01"/>
+     <cml:atom id="a2" elementType="H" x3="1.357841649" y3="1.986399167" z3="0.127737169"/>
+     <cml:atom id="a3" elementType="C" x3="1.258235731" y3="-0.159251901" z3="0.124233518"/>
+     <cml:atom id="a4" elementType="H" x3="2.324954277" y3="-0.287099878" z3="0.246743035"/>
+     <cml:atom id="a5" elementType="C" x3="0.426884963" y3="-1.274526662" z3="0.42650428E-01"/>
+     <cml:atom id="a6" elementType="H" x3="0.850444649" y3="-2.26843268"
+       z3="0.947499519999999E-01"/>
+     <cml:atom id="a7" elementType="C" x3="-0.949577845" y3="-1.110074058" z3="-0.100313595"/>
+     <cml:atom id="a8" elementType="H" x3="-1.594455696" y3="-1.976273703" z3="-0.16371348"/>
+     <cml:atom id="a9" elementType="C" x3="-1.49552564" y3="0.171050561" z3="-0.161546018"/>
+     <cml:atom id="a10" elementType="H" x3="-2.563782791" y3="0.299221149" z3="-0.273703115"/>
+     <cml:atom id="a11" elementType="C" x3="-0.663827601" y3="1.286642887"
+       z3="-0.83401433E-01"/>
+     <cml:atom id="a12" elementType="H" x3="-1.086900697" y3="2.281000204" z3="-0.132886135"/>
+     <cml:atom id="a13" elementType="Du" x3="1.949488213" y3="1.110116294" z3="3.600833554"/>
+     <cml:atom id="a14" elementType="Du" x3="2.594333337" y3="1.976300037" z3="3.664584272"/>
+     <cml:atom id="a15" elementType="Du" x3="2.495441339" y3="-0.171034805" z3="3.662353287"/>
+     <cml:atom id="a16" elementType="Du" x3="3.563648223" y3="-0.299181855" z3="3.775097506"/>
+     <cml:atom id="a17" elementType="Du" x3="1.663791859" y3="-1.286634905" z3="3.583702858"/>
+     <cml:atom id="a18" elementType="Du" x3="2.086873566" y3="-2.28098734" z3="3.633356521"/>
+     <cml:atom id="a19" elementType="Du" x3="0.287390298" y3="-1.120999876" z3="3.43898611"/>
+     <cml:atom id="a20" elementType="Du" x3="-0.357712298" y3="-1.98641012" z3="3.371353478"/>
+     <cml:atom id="a21" elementType="Du" x3="-0.258169573" y3="0.159232871" z3="3.375020282"/>
+     <cml:atom id="a22" elementType="Du" x3="-1.324797607" y3="0.287062084" z3="3.251841521"/>
+     <cml:atom id="a23" elementType="Du" x3="0.573107377" y3="1.274513633" z3="3.457091226"/>
+     <cml:atom id="a24" elementType="Du" x3="0.149582495" y3="2.268418667" z3="3.404722296"/>
+    </cml:atomArray>
+    <cml:bondArray>
+     <cml:bond atomRefs2="a1 a2"/>
+     <cml:bond atomRefs2="a1 a3"/>
+     <cml:bond atomRefs2="a3 a4"/>
+     <cml:bond atomRefs2="a3 a5"/>
+     <cml:bond atomRefs2="a5 a6"/>
+     <cml:bond atomRefs2="a5 a7"/>
+     <cml:bond atomRefs2="a7 a8"/>
+     <cml:bond atomRefs2="a7 a9"/>
+     <cml:bond atomRefs2="a9 a10"/>
+     <cml:bond atomRefs2="a1 a11"/>
+     <cml:bond atomRefs2="a9 a11"/>
+     <cml:bond atomRefs2="a11 a12"/>
+     <cml:bond atomRefs2="a13 a14"/>
+     <cml:bond atomRefs2="a13 a15"/>
+     <cml:bond atomRefs2="a15 a16"/>
+     <cml:bond atomRefs2="a15 a17"/>
+     <cml:bond atomRefs2="a17 a18"/>
+     <cml:bond atomRefs2="a17 a19"/>
+     <cml:bond atomRefs2="a19 a20"/>
+     <cml:bond atomRefs2="a19 a21"/>
+     <cml:bond atomRefs2="a21 a22"/>
+     <cml:bond atomRefs2="a13 a23"/>
+     <cml:bond atomRefs2="a21 a23"/>
+     <cml:bond atomRefs2="a23 a24"/>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-230.781243243902"/>
+   <property name="One-electron energy" method="RHF" value="-713.878751911114"/>
+   <property name="Two-electron energy" method="RHF" value="279.3855052979"/>
+   <property name="Kinetic energy" method="RHF" value="230.445049545718"/>
+   <property name="Nuclear energy" method="RHF" value="203.712003369312"/>
+   <property name="Virial quotient" method="RHF" value="-1.00145888878432"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="-0.213797617988121E-03 0.13043044638672E-04 0.429247537526134E-02"/>
+   <time start="14:20:55" end="14:21:13" cpu="14.74" system="2.79" real="17.65"/>
+   <storage units="megabyte" memory="30517.58" sf="317.99" df="1028.54" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-HF/aug-cc-pVTZ,H=CC-PVTZ"/>
+  </jobstep>
+  <jobstep command="DF-MP2" commandset="CCSD">
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-230.7812432439"/>
+   <property name="singlet pair energy" method="MP2" stateSymmetry="1" stateNumber="1"
+     value="-0.686185719851456"/>
+   <property name="triplet pair energy" method="MP2" stateSymmetry="1" stateNumber="1"
+     value="-0.382529196123964"/>
+   <property name="correlation energy" method="MP2" stateSymmetry="1" stateNumber="1"
+     value="-1.06871491597542"/>
+   <property name="total energy" method="MP2" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-231.849958159876"/>
+   <time start="14:21:13" end="14:21:15" cpu="1.87" system="0.2" real="2.1"/>
+   <storage units="megabyte" memory="30517.58" sf="1051.08" df="1028.54" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-MP2/aug-cc-pVTZ,H=CC-PVTZ"/>
+  </jobstep>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>NOSYM</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=initial.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/2022/CCSD_MLIP_AF/data/molpro.2024.1/sp/2.2_S66x8_CP/DF-MP2/heavy-aug-cc-pVTZ/active/Benzene-Benzene_pi-pi/1.00/CP1G/initial.xyz"/>
+   <p>DUMMY,13,14,15,16,17,18,19,20,21,22,23,24</p>
+   <p>BASIS=aug-cc-pVTZ,H=cc-pVTZ</p>
+   <p>{DF-HF}</p>
+   <p>{DF-MP2;CORE}</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>

@@ -190,3 +190,11 @@ def test_counterpoise() -> None:
 
     # Test if the energy is corectly updated in the `COUNTERPOISE` jobstep.
     assert images[-1].get_potential_energy() != images[-2].get_potential_energy()
+
+
+def test_dummy() -> None:
+    """Test if ghost atoms are replaced with `X` correctly."""
+    fn = Path(__file__).parent / "data" / "ghost" / "molpro.xml"
+    atoms = read_molpro_xml(fn)
+    symbols_ref = ["C", "H"] * 6 + ["X"] * 12
+    assert atoms.get_chemical_symbols() == symbols_ref
