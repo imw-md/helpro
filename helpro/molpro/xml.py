@@ -21,7 +21,13 @@ class MolproXMLParser:
 
     def __init__(self) -> None:
         """Initialize."""
-        self.platform = {}
+        self.platform = {
+            "major": -1,
+            "minor": -1,
+            "processes": -1,
+            "nodes": -1,
+            "openmp": -1,
+        }
 
     @property
     def is_angstrom(self) -> bool:
@@ -153,25 +159,19 @@ class MolproXMLParser:
 
 def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
     """Read MOLPRO xml file."""
+    parser = MolproXMLParser()
+
     try:
         tree = ET.parse(filename)
     except ET.ParseError:
         atoms = Atoms()
         atoms.calc = SinglePointCalculator(atoms)
-        d = {
-            "major": -1,
-            "minor": -1,
-            "processes": -1,
-            "nodes": -1,
-            "openmp": -1,
-        }
-        atoms.calc.results.update(d)
+        atoms.calc.results.update(parser.platform)
         return atoms
     root = tree.getroot()
     job = root.find("job", namespaces)
     is_angstrom = parse_input_tag(job)
 
-    parser = MolproXMLParser()
     parser.is_angstrom = is_angstrom
 
     parser.parse_platform(job.find("platform", namespaces))
