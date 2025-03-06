@@ -1,5 +1,6 @@
 """Molpro."""
 
+import argparse
 from dataclasses import KW_ONLY, dataclass, field
 from pathlib import Path
 
@@ -247,3 +248,26 @@ class MolproInputWriter:
                     f.write(line)
             for option in self.options:
                 f.write(f"{option}\n")
+
+
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add arguments."""
+    parser.add_argument("--method", default="HF")
+    parser.add_argument("--basis", default="cc-pVDZ")
+    parser.add_argument("--core", default="frozen", choices=("frozen", "active"))
+    parser.add_argument("--geometry", default="initial.xyz")
+    parser.add_argument("--charge", type=int)
+    parser.add_argument("--spin", type=int)
+
+
+def run(args: argparse.Namespace) -> None:
+    """Run."""
+    miw = MolproInputWriter(
+        method=args.method,
+        basis=args.basis,
+        core=args.core,
+        geometry=args.geometry,
+        charge=args.charge,
+        spin=args.spin,
+    )
+    miw.write("molpro.inp")

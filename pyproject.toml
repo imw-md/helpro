@@ -13,6 +13,9 @@ authors = [
     {name = "Yuji Ikeda"},
 ]
 
+[project.scripts]
+helpro = "helpro.__init__:main"
+
 [tool.ruff.lint]
 preview = true  # necessary to activate many pycodestyle rules
 select = ["ALL"]
