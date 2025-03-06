@@ -300,6 +300,8 @@ class EnergyParserCCSD(EnergyParser):
 
 
 class EnergyParserCCSDT(EnergyParser):
+    """Parser for CCSD(T)."""
+
     def fetch(self, jobstep: ET.Element) -> dict[str, float]:
         results = {}
         for child in jobstep.findall("property", self.namespaces):
@@ -310,11 +312,11 @@ class EnergyParserCCSDT(EnergyParser):
                 results[self.keym] = value
             if name == "energy" and method in "RHF-RMP2":
                 results[self.keym] = value
-            if name == "correlation energy" and method == "Total":
+            if name == "correlation energy" and method in {"Total", "CCSD(T)-F12"}:
                 results[self.keyc] = value
             if name == "energy" and method == "Total correlation":
                 results[self.keyc] = value
-            if name == "total energy" and method == "CCSD(T)":
+            if name == "total energy" and method in {"CCSD(T)", "CCSD(T)-F12"}:
                 results[self.keyt] = value  # RCCSD(T)
             if name == "energy" and method == "RHF-UCCSD(T)":
                 results[self.keyt] = value  # UCCSD(T)
@@ -434,7 +436,7 @@ def get_energy_parsers() -> dict[str, EnergyParser]:
         ("HF-SCF", "DF-HF-SCF", "KS-SCF", "DF-KS-SCF"): EnergyParserSCF,
         ("DF-MP2", "DF-MP2-F12"): EnergyParserMP2,
         ("CCSD", "DF-CCSD", "DF-CCSD-F12"): EnergyParserCCSD,
-        ("CCSD(T)", "DF-CCSD(T)"): EnergyParserCCSDT,
+        ("CCSD(T)", "DF-CCSD(T)", "DF-CCSD(T)-F12"): EnergyParserCCSDT,
         ("PNO-LMP2", "PNO-LCCSD"): EnergyParserPNO,
         ("PNO-LMP2-F12",): EnergyParserPNOLMP2F12,
         ("PNO-LCCSD(T)",): EnergyParserPNOLCCSDT,
