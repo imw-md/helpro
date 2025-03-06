@@ -1,0 +1,16 @@
+
+	 Module molpro of version 2024.1.0 has been loaded
+
+
+======================== JOB EFFICIENCY REPORT ========================
+Job ID: 16602245
+Cluster: justus2
+User/Group: st_ac135682/st_us-031401
+State: COMPLETED (exit code 0)
+Nodes: 1
+Cores per node: 12
+CPU Utilized: 00:00:55
+CPU Efficiency: 76.39% of 00:01:12 core-walltime
+Job Wall-clock time: 00:00:06
+Memory Utilized: 1.03 MB
+Memory Efficiency: 0.00% of 376.00 GB

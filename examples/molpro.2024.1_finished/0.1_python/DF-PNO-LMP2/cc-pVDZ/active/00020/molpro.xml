@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2025-03-06T23:28:25+01:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform pid="1000894">
+   <version major="2024" minor="1" SHA="675817fde4514a4a933b69e420913a90cee4ef91"
+     integer_bits="64" parallelism="mpp">
+    2024.1
+    <date year="2025" month="3" day="6" hour="23" minute="28" second="25">
+     2025-03-06T23:28:25
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="1024" nprim="2" ncol="100"/>
+  </platform>
+  <jobstep command="DF-HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="O" x3="-0.3260256E-01" y3="-0.5055266E-01"
+       z3="-0.1947566E-01"/>
+     <cml:atom id="a2" elementType="H" x3="0.5690025E-01" y3="0.29208128" z3="0.93216827"/>
+     <cml:atom id="a3" elementType="H" x3="0.46056837" y3="0.51029166" z3="-0.62305015"/>
+    </cml:atomArray>
+    <cml:bondArray>
+     <cml:bond atomRefs2="a1 a2"/>
+     <cml:bond atomRefs2="a1 a3"/>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-76.0210052493334"/>
+   <property name="One-electron energy" method="RHF" value="-122.647466902995"/>
+   <property name="Two-electron energy" method="RHF" value="37.7221998529771"/>
+   <property name="Kinetic energy" method="RHF" value="75.8735622937302"/>
+   <property name="Nuclear energy" method="RHF" value="8.90426180068437"/>
+   <property name="Virial quotient" method="RHF" value="-1.00194327182151"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="0.40778520776242 0.629023583933442 0.229157583601705"/>
+   <time start="23:28:25" end="23:28:28" cpu="1.67" system="1.88" real="3.68"/>
+   <storage units="megabyte" memory="30517.58" sf="0.15" df="349.95" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-HF/cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="PNO-LMP2" commandset="PNO">
+   <property name="Reference energy" stateSymmetry="1" stateNumber="1"
+     value="-76.0210052493334"/>
+   <property name="OVERLAP" method="PNO-LMP2 domain correction" stateSymmetry="1"
+     stateNumber="1" value="-0.517714219725688E-08"/>
+   <property name="OVERLAP" method="PNO-LMP2 correlation energy" stateSymmetry="1"
+     stateNumber="1" value="-0.205483117003076"/>
+   <property name="OVERLAP" method="PNO-LMP2 total energy" principal="true"
+     stateSymmetry="1" stateNumber="1" value="-76.2264883663364"/>
+   <time start="23:28:28" end="23:28:28" cpu="0.14" system="0.03" real="0.2"/>
+   <storage units="megabyte" memory="30517.58" sf="0.22" df="349.96" eaf="0.0" ga="0.0"/>
+   <summary overall_method="PNO-LMP2/cc-pVDZ"/>
+  </jobstep>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>NOSYM</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=initial.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/codes/helpro/examples/molpro.2024.1/0.1_python/DF-PNO-LMP2/cc-pVDZ/active/00020/initial.xyz"/>
+   <p>BASIS=cc-pVDZ</p>
+   <p>{DF-HF}</p>
+   <p>{PNO-LMP2;CORE}</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>
