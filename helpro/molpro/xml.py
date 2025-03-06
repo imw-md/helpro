@@ -279,6 +279,7 @@ class EnergyParserCCSD(EnergyParser):
     """Parser for CCSD."""
 
     def fetch(self, jobstep: ET.Element) -> dict[str, float]:
+        method_principal = jobstep.attrib["command"].replace("DF-", "")
         results = {}
         for child in jobstep.findall("property", self.namespaces):
             name = child.attrib["name"]
@@ -288,38 +289,16 @@ class EnergyParserCCSD(EnergyParser):
                 results[self.keym] = value
             if name == "energy" and method == "RHF-RMP2":
                 results[self.keym] = value
-            if name == "correlation energy" and method in {"CCSD", "CCSD-F12"}:
+            if name == "correlation energy" and method in {"Total", method_principal}:
                 results[self.keyc] = value
             if name == "energy" and method == "UCCSD correlation":
-                results[self.keyc] = value
-            if name == "total energy" and method in {"CCSD", "CCSD-F12"}:
-                results[self.keyt] = value
-            if name == "energy" and method == "RHF-UCCSD":
-                results[self.keyt] = value
-        return results
-
-
-class EnergyParserCCSDT(EnergyParser):
-    """Parser for CCSD(T)."""
-
-    def fetch(self, jobstep: ET.Element) -> dict[str, float]:
-        results = {}
-        for child in jobstep.findall("property", self.namespaces):
-            name = child.attrib["name"]
-            method = child.attrib.get("method")
-            value = float(child.attrib["value"].split()[-1])
-            if name == "total energy" and method == "MP2":
-                results[self.keym] = value
-            if name == "energy" and method in "RHF-RMP2":
-                results[self.keym] = value
-            if name == "correlation energy" and method in {"Total", "CCSD(T)-F12"}:
-                results[self.keyc] = value
+                results[self.keyc] = value  # UCCSD
             if name == "energy" and method == "Total correlation":
-                results[self.keyc] = value
-            if name == "total energy" and method in {"CCSD(T)", "CCSD(T)-F12"}:
-                results[self.keyt] = value  # RCCSD(T)
-            if name == "energy" and method == "RHF-UCCSD(T)":
-                results[self.keyt] = value  # UCCSD(T)
+                results[self.keyc] = value  # UCCSD(T)
+            if name == "total energy" and method in {"Total", method_principal}:
+                results[self.keyt] = value  # RCCSD, RCCSD(T)
+            if name == "energy" and method in {"RHF-UCCSD", "RHF-UCCSD(T)"}:
+                results[self.keyt] = value  # UCCSD, UCCSD(T)
         return results
 
 
@@ -436,7 +415,7 @@ def get_energy_parsers() -> dict[str, EnergyParser]:
         ("HF-SCF", "DF-HF-SCF", "KS-SCF", "DF-KS-SCF"): EnergyParserSCF,
         ("DF-MP2", "DF-MP2-F12"): EnergyParserMP2,
         ("CCSD", "DF-CCSD", "DF-CCSD-F12"): EnergyParserCCSD,
-        ("CCSD(T)", "DF-CCSD(T)", "DF-CCSD(T)-F12"): EnergyParserCCSDT,
+        ("CCSD(T)", "DF-CCSD(T)", "DF-CCSD(T)-F12"): EnergyParserCCSD,
         ("PNO-LMP2", "PNO-LCCSD"): EnergyParserPNO,
         ("PNO-LMP2-F12",): EnergyParserPNOLMP2F12,
         ("PNO-LCCSD(T)",): EnergyParserPNOLCCSDT,
