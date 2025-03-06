@@ -4,6 +4,12 @@ https://semver.org/
 
 https://keepachangelog.com/
 
+## 0.5.0 (2025-03-07)
+
+- Added command-line `helpro`
+- Added examples `0.0_basic` and `0.1_python`
+- Fixed `read_molpro_xml` for `DF-CCSD-F12` and `DF-CCSD(T)-F12`
+
 ## 0.4.0 (2025-02-08)
 
 - Added `read_molpro_xml`
