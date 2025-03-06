@@ -135,9 +135,16 @@ module load chem/molpro/2024.1.0
 molpro -m 4000 molpro.inp
 ```
 This uses 12 cores in one node in parallel.
-You can submit the job as follows.
+
+For later convenience, we put the script in close to the home directory.
 ```
-sbatch ../slurm/molpro.2024.1.0_012_384_2d.sh
+mkdir -p ~/slurm
+cp ../slurm/molpro.2024.1.0_012_384_2d.sh ~/slurm
+```
+
+You can then submit the job as follows.
+```
+sbatch ~/slurm/molpro.2024.1.0_012_384_2d.sh
 ```
 You need to wait until the job starts and finishes.
 You can check the status, e.g., as follows.

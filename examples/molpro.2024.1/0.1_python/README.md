@@ -149,11 +149,21 @@ This makes a `jobList` file.
 ./DF-PNO-LMP2/cc-pVDZ/frozen/00080
 ./DF-PNO-LMP2/cc-pVDZ/frozen/00100
 ```
-We finally run
+To run the calculations efficiently, we use `submit.py` in the `bin` directory.
+This reads the directories in `jobList`, visits each directory written in `jobList`,
+and submit a certain job script.
+
+For later convenience, we put this script close to the home directory.
 ```
-../../bin/submit.py ../../slurm/molpro.2024.1.0_012_384_2d.sh
+mkdir -p ~/bin
+cp -p ../../bin/submit.py ~/bin
 ```
-This visits each directory written in `jobList` and submit the MOLPRO job.
+
+We then run `submit.py` as below.
+```
+~/bin/submit.py ~/slurm/molpro.2024.1.0_012_384_2d.sh
+```
+This submits the MOLPRO job for each directory in `jobList`.
 
 Once all the calculations are finished, we need to collect the results.
 This will be done in the `energies` directory.
