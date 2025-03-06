@@ -1,19 +1,14 @@
 """Basis sets for MOLPRO."""
 
-bases_all = (
-    "cc-pVDZ",
-    "cc-pVTZ",
-    "cc-pVQZ",
-    "cc-pV5Z",
-    "cc-pV6Z",
-    "heavy-aug-cc-pVDZ",
-    "heavy-aug-cc-pVTZ",
-    "heavy-aug-cc-pVQZ",
-    "heavy-aug-cc-pV5Z",
-    "heavy-aug-cc-pV6Z",
-    "aug-cc-pVDZ",
-    "aug-cc-pVTZ",
-    "aug-cc-pVQZ",
-    "aug-cc-pV5Z",
-    "aug-cc-pV6Z",
-)
+
+def make_basis_sets() -> list[str]:
+    """Make basis sets."""
+    bases = []
+    cardinals = ["D", "T", "Q", "5", "6"]
+    bases.extend([f"cc-pV{c}Z" for c in cardinals])
+    bases.extend([f"heavy-aug-cc-pV{c}Z" for c in cardinals])
+    bases.extend([f"aug-cc-pV{c}Z" for c in cardinals])
+    return bases
+
+
+bases_all = make_basis_sets()
