@@ -23,7 +23,8 @@ def run(miw: MolproInputWriter, images: list[Atoms]) -> None:
         directory = Path(f"{i:05d}")
         directory.mkdir(parents=True, exist_ok=True)
         with cd(directory):
-            ase.io.write("initial.xyz", images[i])
+            # molpro does not recognize ASE extented xyz
+            ase.io.write("initial.xyz", images[i], format="xyz")
             miw.write()
 
 
