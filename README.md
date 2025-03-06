@@ -1,11 +1,37 @@
 # HELPRO
 
+This is our internal software to pre- and post-process MOLPRO calculations.
+
+## Installation
+
+The latest version is available from GitHub.
+
 ```
-helpro input --method DF-HF DF-MP2 --basis cc-pVDZ cc-pVTZ aug-cc-pVDZ aug-cc-pVTZ
+pip install git+ssh://git@github.com:yuzie007/helpro.git
+```
+
+If you wish to join development, you should have source codes of the package
+and install it in the editable mode as
+
+```
+git clone git@github.com:yuzie007/helpro.git
+cd helpro
+pip install -e .
+```
+
+## Usage
+
+```
+helpro inp --method HF --basis cc-pVDZ
 ```
 
 ```python
-from helpro.molpro.inp import write_molpro_inp
+from helpro.molpro.inp import MolproInputWriter
 
-write_molpro_inp(method=methods, basis=bases)
+miw = MolproInputWriter(method="HF", basis="cc-pVDZ")
+miw.write()
 ```
+
+## Author
+
+Yuji Ikeda
