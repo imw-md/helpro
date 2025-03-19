@@ -124,6 +124,11 @@ class MolproXMLParser:
         float
             Counterpoise correction.
 
+        Raises
+        ------
+        RuntimeError
+            If the number of monomers is not four.
+
         """
         subjobsteps = jobstep.findall("jobstep", namespaces)
         subjobsteps = [_ for _ in subjobsteps if _.attrib["command"] == command]
