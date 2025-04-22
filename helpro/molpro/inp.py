@@ -9,7 +9,14 @@ from .methods import methods_all
 
 
 def make_wf_directive(charge: int | None, spin: int | None) -> str:
-    """Make the WF directive."""
+    """Make the WF directive.
+
+    Returns
+    -------
+    wf : str
+        WF directive.
+
+    """
     wf = ""
     if charge is not None or spin is not None:
         wf = ";WF"
@@ -21,7 +28,16 @@ def make_wf_directive(charge: int | None, spin: int | None) -> str:
 
 
 def parse_dft_method(method: str, wf_directive: str = "") -> str:
-    """Parse a DFT method."""
+    """Parse a DFT method.
+
+    https://www.molpro.net/manual/doku.php?id=the_density_functional_program
+
+    Returns
+    -------
+    dft : str
+        DFT command.
+
+    """
     dispersion = method.split("-")[-1].replace("_BJ", ",BJ")
     is_dispersion = dispersion in {"D2", "D3", "D3,BJ", "D4"}
     ks, xc = method.split("_")[:2]
@@ -33,7 +49,21 @@ def parse_dft_method(method: str, wf_directive: str = "") -> str:
 
 
 def parse_rpa_method(method: str, *, core: str, wf_directive: str) -> str:
-    """Parse an RPA method."""
+    """Parse an RPA method.
+
+    https://www.molpro.net/manual/doku.php?id=kohn-sham_random-phase_approximation
+
+    Returns
+    -------
+    rpa : str
+        RPA command.
+
+    Raises
+    ------
+    RuntimeError
+        If `core=='active'` is specified for AFCD.
+
+    """
     props = methods_all[method]
     lines = []
     if props.xc:
@@ -62,7 +92,14 @@ def make_method_lines(
     charge: int | None = None,
     spin: int | None = None,
 ) -> str:
-    """Make method lines."""
+    """Make method lines.
+
+    Returns
+    -------
+    command : str
+        Command.
+
+    """
     props = methods_all[method]
 
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
@@ -89,7 +126,14 @@ def make_method_lines(
 
 
 def parse_heavy_basis(basis: str) -> str:
-    """Parse heavy basis."""
+    """Parse heavy basis.
+
+    Returns
+    -------
+    basis : str
+        Command for the heavy-augmented basis set.
+
+    """
     if basis.startswith("heavy-"):
         basis = basis.replace("heavy-", "")
         basis_hydrogen = basis.replace("aug-", "")
@@ -98,7 +142,16 @@ def parse_heavy_basis(basis: str) -> str:
 
 
 def make_basis_lines(method: str, basis: str) -> list[str]:
-    """Make basis lines."""
+    """Make basis lines.
+
+    https://www.molpro.net/manual/doku.php?id=basis_input
+
+    Returns
+    -------
+    basis : str
+        Commnd for the basis set.
+
+    """
     props = methods_all[method]
     if props.is_ksrpa:
         lines = (
@@ -124,7 +177,19 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
 
 
 def validate_options(options: str | list[str] | None) -> list[str]:
-    """Validate options."""
+    """Validate options.
+
+    Returns
+    -------
+    options : list[str]
+        Validated options.
+
+    Raises
+    ------
+    ValueError
+        If the given option is not recognized by HELPRO.
+
+    """
     if options is None:
         options = []
     if isinstance(options, str):
@@ -147,7 +212,14 @@ class MolproInputGeometry:
     skip: bool = False
 
     def make_lines(self) -> str:
-        """Make lines related to `GEOMETRY`."""
+        """Make lines related to `GEOMETRY`.
+
+        Returns
+        -------
+        geometry : str
+            GEOMETRY command.
+
+        """
         lines = [r"ANGSTROM"]
         lines.append(f"GEOMETRY={self.fname}")
         if self.dummies:
@@ -203,6 +275,11 @@ class MolproInputWriter:
         ----------
         fname : str, default: "molpro.inp"
             Input file name.
+
+        Raises
+        ------
+        ValueError
+            If the method or the basis set is not recognized by HELPRO.
 
         """
         if fname is None:
