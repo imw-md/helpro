@@ -8,8 +8,16 @@ from .bases import bases_all
 from .methods import methods_all
 
 
-def make_wf_directive(charge: int | None, spin: int | None) -> str:
+def make_wf_directive(charge: int | None, multiplicity: int | None) -> str:
     """Make the WF directive.
+
+    Parameters
+    ----------
+    charge : int, optional
+        Charge.
+
+    multiplicity : int, optional
+        Spin multiplicity.
 
     Returns
     -------
@@ -18,12 +26,12 @@ def make_wf_directive(charge: int | None, spin: int | None) -> str:
 
     """
     wf = ""
-    if charge is not None or spin is not None:
+    if charge is not None or multiplicity is not None:
         wf = ";WF"
         if charge is not None:
             wf += f",CHARGE={charge}"
-        if spin is not None:
-            wf += f",SPIN={spin}"
+        if multiplicity is not None:
+            wf += f",SPIN={multiplicity - 1}"
     return wf
 
 
@@ -90,9 +98,20 @@ def make_method_lines(
     *,
     core: str,
     charge: int | None = None,
-    spin: int | None = None,
+    multiplicity: int | None = None,
 ) -> str:
     """Make method lines.
+
+    Parameters
+    ----------
+    method : str
+        Method.
+    core : {'frozen', 'active'}
+        Core-electron excitation.
+    charge : int, optional
+        Charge.
+    multiplicity : int, optional
+        Spin multiplicity.
 
     Returns
     -------
@@ -103,7 +122,7 @@ def make_method_lines(
     props = methods_all[method]
 
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
-    wf_directive = make_wf_directive(charge, spin)
+    wf_directive = make_wf_directive(charge, multiplicity)
     lines = []
     if props.is_ks:
         lines.append(parse_dft_method(method, wf_directive=wf_directive))
@@ -245,8 +264,8 @@ class MolproInputWriter:
         Whether the core is active or frozen.
     charge : int | None, default: None
         Charge.
-    spin : int | None, default: None
-        Spin.
+    multiplicity : int | None, default: None
+        Spin multiplicity.
     options : {"FORCES", "OPTG", "COUNTERPOISE"}
         Option(s).
     geometry : str, default: "initial.xyz"
@@ -260,7 +279,7 @@ class MolproInputWriter:
     core: str = "active"
     geometry: MolproInputGeometry = field(default_factory=MolproInputGeometry)
     charge: int | None = None
-    spin: int | None = None
+    multiplicity: int | None = None
     options: list[str] | str | None = None
 
     def __post_init__(self) -> None:
@@ -311,7 +330,7 @@ class MolproInputWriter:
             self.method,
             core=self.core,
             charge=self.charge,
-            spin=self.spin,
+            multiplicity=self.multiplicity,
         )
 
         p = Path(fname)
@@ -334,7 +353,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--core", default="frozen", choices=("frozen", "active"))
     parser.add_argument("--geometry", default="initial.xyz")
     parser.add_argument("--charge", type=int)
-    parser.add_argument("--spin", type=int)
+    parser.add_argument("--multiplicity", type=int)
 
 
 def run(args: argparse.Namespace) -> None:
@@ -345,6 +364,6 @@ def run(args: argparse.Namespace) -> None:
         core=args.core,
         geometry=args.geometry,
         charge=args.charge,
-        spin=args.spin,
+        multiplicity=args.multiplicity,
     )
     miw.write("molpro.inp")
