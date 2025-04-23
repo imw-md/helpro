@@ -54,7 +54,13 @@ def test_charge_and_spin(*, method: str, basis: str, core: str, tmp_path: Path) 
         sref = f.read()
 
     p = tmp_path / "molpro.inp"
-    miw = MolproInputWriter(method=method, basis=basis, core=core, charge=0, spin=1)
+    miw = MolproInputWriter(
+        method=method,
+        basis=basis,
+        core=core,
+        charge=0,
+        multiplicity=1,
+    )
     miw.write(fname=p)
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
