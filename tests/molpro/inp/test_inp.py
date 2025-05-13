@@ -9,7 +9,13 @@ from helpro.molpro.inp import MolproInputWriter
 
 
 def get_parameters_basic() -> list[list[str]]:
-    """Get parameters."""
+    """Get parameters.
+
+    Returns
+    -------
+    parameters : list[list[str]]
+
+    """
     p = Path(__file__).parent / "data" / "basic"
     parameters = []
     for root, _, files in os.walk(p):
@@ -35,8 +41,41 @@ def test_basic(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
     assert s == sref
 
 
+def test_cabs_singles(tmp_path: Path) -> None:
+    """Test CABS_SINGLES."""
+    lines = (
+        r"GPRINT,ORBITALS",
+        r"NOSYM",
+        r"ANGSTROM",
+        r"GEOMETRY=initial.xyz",
+        r"BASIS=cc-pVDZ",
+        r"{DF-HF}",
+        r"{DF-MP2-F12,CABS_SINGLES=0}",
+    )
+    sref = "".join(f"{_}\n" for _ in lines)
+
+    p = tmp_path / "molpro.inp"
+    miw = MolproInputWriter(
+        method="DF-MP2-F12",
+        basis="cc-pVDZ",
+        core="frozen",
+        cabs_singles=0,
+    )
+    miw.write(fname=p)
+    with p.open("r", encoding="utf-8") as f:
+        s = f.read()
+
+    assert s == sref
+
+
 def get_parameters_charge_and_spin() -> list[list[str]]:
-    """Get parameters."""
+    """Get parameters.
+
+    Returns
+    -------
+    parameters : list[list[str]]
+
+    """
     p = Path(__file__).parent / "data" / "charge_and_spin"
     parameters = []
     for root, _, files in os.walk(p):

@@ -97,6 +97,7 @@ def make_method_lines(
     method: str,
     *,
     core: str,
+    cabs_singles: int | None = None,
     charge: int | None = None,
     multiplicity: int | None = None,
 ) -> str:
@@ -108,6 +109,8 @@ def make_method_lines(
         Method.
     core : {'frozen', 'active'}
         Core-electron excitation.
+    cabs_singles : int, optional
+        CABS_SINGLES for non-PNO F12 methods.
     charge : int, optional
         Charge.
     multiplicity : int, optional
@@ -120,6 +123,10 @@ def make_method_lines(
 
     """
     props = methods_all[method]
+
+    option = ""
+    if cabs_singles is not None and not props.is_pno and props.is_f12:
+        option = f",CABS_SINGLES={cabs_singles}"
 
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
     wf_directive = make_wf_directive(charge, multiplicity)
@@ -139,7 +146,7 @@ def make_method_lines(
         lines.append(f"{{DF-CABS{str_core}}}")
     method = method.replace("CCSD_T", "CCSD(T)")
     method = method.replace("DF-PNO", "PNO")
-    lines.append(f"{{{method}{str_core}}}")
+    lines.append(f"{{{method}{option}{str_core}}}")
 
     return "\n".join(lines)
 
@@ -262,6 +269,8 @@ class MolproInputWriter:
         Basis set.
     core : {"active", "frozen"}, default: "active"
         Whether the core is active or frozen.
+    cabs_singles : int | None, default : None
+        CABS_SINGLES for non-PNO F12 methods.
     charge : int | None, default: None
         Charge.
     multiplicity : int | None, default: None
@@ -277,6 +286,7 @@ class MolproInputWriter:
     basis: str
     _: KW_ONLY
     core: str = "active"
+    cabs_singles: int | None = None
     geometry: MolproInputGeometry = field(default_factory=MolproInputGeometry)
     charge: int | None = None
     multiplicity: int | None = None
@@ -329,6 +339,7 @@ class MolproInputWriter:
         method_lines = make_method_lines(
             self.method,
             core=self.core,
+            cabs_singles=self.cabs_singles,
             charge=self.charge,
             multiplicity=self.multiplicity,
         )
@@ -351,6 +362,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--method", default="HF")
     parser.add_argument("--basis", default="cc-pVDZ")
     parser.add_argument("--core", default="frozen", choices=("frozen", "active"))
+    parser.add_argument("--cabs-singles", type=int)
     parser.add_argument("--geometry", default="initial.xyz")
     parser.add_argument("--charge", type=int)
     parser.add_argument("--multiplicity", type=int)
@@ -362,6 +374,7 @@ def run(args: argparse.Namespace) -> None:
         method=args.method,
         basis=args.basis,
         core=args.core,
+        cabs_singles=args.cabs_singles,
         geometry=args.geometry,
         charge=args.charge,
         multiplicity=args.multiplicity,
