@@ -93,12 +93,28 @@ def parse_rpa_method(method: str, *, core: str, wf_directive: str) -> str:
     return "\n".join(lines)
 
 
+@dataclass(slots=True)
+class F12MethodOptions:
+    """Method options.
+
+    Attributes
+    ----------
+    cabs_singles : int, optional
+        CABS_SINGLES for non-PNO F12 methods.
+    core_singles : int, optional
+        CORE_SINGLES for non-PNO F12 methods.
+
+    """
+
+    cabs_singles: int | None = None
+    core_singles: int | None = None
+
+
 def make_method_lines(
     method: str,
     *,
     core: str,
-    cabs_singles: int | None = None,
-    core_singles: int | None = None,
+    options: F12MethodOptions,
     charge: int | None = None,
     multiplicity: int | None = None,
 ) -> str:
@@ -110,10 +126,8 @@ def make_method_lines(
         Method.
     core : {'frozen', 'active'}
         Core-electron excitation.
-    cabs_singles : int, optional
-        CABS_SINGLES for non-PNO F12 methods.
-    core_singles : int, optional
-        CORE_SINGLES for non-PNO F12 methods.
+    options : F12MethodOptions
+        F12MethodOptions.
     charge : int, optional
         Charge.
     multiplicity : int, optional
@@ -128,10 +142,10 @@ def make_method_lines(
     props = methods_all[method]
 
     option = ""
-    if cabs_singles is not None and not props.is_pno and props.is_f12:
-        option += f",CABS_SINGLES={cabs_singles}"
-    if core_singles is not None and not props.is_pno and props.is_f12:
-        option += f",CORE_SINGLES={core_singles}"
+    if options.cabs_singles is not None and not props.is_pno and props.is_f12:
+        option += f",CABS_SINGLES={options.cabs_singles}"
+    if options.core_singles is not None and not props.is_pno and props.is_f12:
+        option += f",CORE_SINGLES={options.core_singles}"
 
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
     wf_directive = make_wf_directive(charge, multiplicity)
@@ -274,10 +288,8 @@ class MolproInputWriter:
         Basis set.
     core : {"active", "frozen"}, default: "active"
         Whether the core is active or frozen.
-    cabs_singles : int | None, default : None
-        CABS_SINGLES for non-PNO F12 methods.
-    core_singles : int | None, default : None
-        CORE_SINGLES for non-PNO F12 methods.
+    method_options : F12MethodOptions
+        F12MethodOptions.
     charge : int | None, default: None
         Charge.
     multiplicity : int | None, default: None
@@ -293,6 +305,7 @@ class MolproInputWriter:
     basis: str
     _: KW_ONLY
     core: str = "active"
+    method_options: F12MethodOptions = field(default_factory=F12MethodOptions)
     cabs_singles: int | None = None
     core_singles: int | None = None
     geometry: MolproInputGeometry = field(default_factory=MolproInputGeometry)
@@ -347,7 +360,7 @@ class MolproInputWriter:
         method_lines = make_method_lines(
             self.method,
             core=self.core,
-            cabs_singles=self.cabs_singles,
+            options=self.method_options,
             charge=self.charge,
             multiplicity=self.multiplicity,
         )
@@ -379,11 +392,15 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace) -> None:
     """Run."""
+    method_options = F12MethodOptions(
+        cabs_singles=args.cabs_singles,
+        core_singles=args.core_singles,
+    )
     miw = MolproInputWriter(
         method=args.method,
         basis=args.basis,
         core=args.core,
-        cabs_singles=args.cabs_singles,
+        method_options=method_options,
         geometry=args.geometry,
         charge=args.charge,
         multiplicity=args.multiplicity,

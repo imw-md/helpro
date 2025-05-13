@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from helpro.molpro.inp import MolproInputWriter
+from helpro.molpro.inp import F12MethodOptions, MolproInputWriter
 
 
 def get_parameters_basic() -> list[list[str]]:
@@ -55,11 +55,12 @@ def test_cabs_singles(tmp_path: Path) -> None:
     sref = "".join(f"{_}\n" for _ in lines)
 
     p = tmp_path / "molpro.inp"
+    method_options = F12MethodOptions(cabs_singles=0)
     miw = MolproInputWriter(
         method="DF-MP2-F12",
         basis="cc-pVDZ",
         core="frozen",
-        cabs_singles=0,
+        method_options=method_options,
     )
     miw.write(fname=p)
     with p.open("r", encoding="utf-8") as f:
