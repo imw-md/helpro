@@ -98,6 +98,7 @@ def make_method_lines(
     *,
     core: str,
     cabs_singles: int | None = None,
+    core_singles: int | None = None,
     charge: int | None = None,
     multiplicity: int | None = None,
 ) -> str:
@@ -111,6 +112,8 @@ def make_method_lines(
         Core-electron excitation.
     cabs_singles : int, optional
         CABS_SINGLES for non-PNO F12 methods.
+    core_singles : int, optional
+        CORE_SINGLES for non-PNO F12 methods.
     charge : int, optional
         Charge.
     multiplicity : int, optional
@@ -126,7 +129,9 @@ def make_method_lines(
 
     option = ""
     if cabs_singles is not None and not props.is_pno and props.is_f12:
-        option = f",CABS_SINGLES={cabs_singles}"
+        option += f",CABS_SINGLES={cabs_singles}"
+    if core_singles is not None and not props.is_pno and props.is_f12:
+        option += f",CORE_SINGLES={core_singles}"
 
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
     wf_directive = make_wf_directive(charge, multiplicity)
@@ -271,6 +276,8 @@ class MolproInputWriter:
         Whether the core is active or frozen.
     cabs_singles : int | None, default : None
         CABS_SINGLES for non-PNO F12 methods.
+    core_singles : int | None, default : None
+        CORE_SINGLES for non-PNO F12 methods.
     charge : int | None, default: None
         Charge.
     multiplicity : int | None, default: None
@@ -287,6 +294,7 @@ class MolproInputWriter:
     _: KW_ONLY
     core: str = "active"
     cabs_singles: int | None = None
+    core_singles: int | None = None
     geometry: MolproInputGeometry = field(default_factory=MolproInputGeometry)
     charge: int | None = None
     multiplicity: int | None = None
@@ -363,6 +371,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--basis", default="cc-pVDZ")
     parser.add_argument("--core", default="frozen", choices=("frozen", "active"))
     parser.add_argument("--cabs-singles", type=int)
+    parser.add_argument("--core-singles", type=int)
     parser.add_argument("--geometry", default="initial.xyz")
     parser.add_argument("--charge", type=int)
     parser.add_argument("--multiplicity", type=int)
