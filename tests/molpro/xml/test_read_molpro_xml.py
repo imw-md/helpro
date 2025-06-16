@@ -21,7 +21,13 @@ def test_platform() -> None:
 
 
 def get_parameters_basic(structure: str) -> list[list[str]]:
-    """Get parameters."""
+    """Get parameters.
+
+    Returns
+    -------
+    parameters : list[list[str]]
+
+    """
     p = Path(__file__).parent / "data" / structure
     parameters = []
     for root, _, files in os.walk(p):
