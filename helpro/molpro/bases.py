@@ -12,9 +12,15 @@ def make_basis_sets() -> list[str]:
     """
     bases = []
     cardinals = ["D", "T", "Q", "5", "6"]
-    bases.extend([f"cc-pV{c}Z" for c in cardinals])
-    bases.extend([f"heavy-aug-cc-pV{c}Z" for c in cardinals])
-    bases.extend([f"aug-cc-pV{c}Z" for c in cardinals])
+    for suffix in ["", "-F12"]:
+        for prefix in ["", "aug-", "heavy-aug-"]:
+            bases.extend([f"{prefix}cc-pV{c}Z{suffix}" for c in cardinals])
+    for suffix in [""]:
+        for prefix in ["", "aug-", "heavy-aug-"]:
+            bases.extend([f"{prefix}cc-pwCV{c}Z{suffix}" for c in cardinals])
+    for suffix in ["-F12"]:
+        for prefix in [""]:
+            bases.extend([f"{prefix}cc-pwCV{c}Z{suffix}" for c in cardinals])
     return bases
 
 
