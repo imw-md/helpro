@@ -268,14 +268,15 @@ class EnergyParserMP2(EnergyParser):
         for child in jobstep.findall("property", self.namespaces):
             name = child.attrib["name"]
             method = child.attrib.get("method")
+            principal = child.attrib.get("principal")
             value = float(child.attrib["value"].split()[-1])
             if name == "correlation energy":
                 results[self.keyc] = value
             if name == "energy" and method == "DF-RMP2 correlation":
                 results[self.keyc] = value
-            if name == "total energy":  # MP2, MP2-F12
+            if name == "total energy" and principal:  # MP2, MP2-F12
                 results[self.keyt] = value
-            if name == "energy" and method == "DF-RMP2":  # RMP2
+            if name == "energy" and principal:  # RMP2, MP2-F12 (open-shell)
                 results[self.keyt] = value
         return results
 
