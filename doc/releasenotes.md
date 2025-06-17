@@ -4,6 +4,14 @@ https://semver.org/
 
 https://keepachangelog.com/
 
+## 0.6.0 (2025-06-18)
+
+- Added `((heavy-)aug-)cc-p(wC)VXZ(-F12)` basis sets
+- Added `F12MethodOptions`
+- Added examples `1.0_atoms`
+- Changed `spin` to `multiplicity`
+- Fixed `read_molpro_xml` for open-shell `DF-MP2-F12`
+
 ## 0.5.0 (2025-03-07)
 
 - Added command-line `helpro`
