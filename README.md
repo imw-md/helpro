@@ -7,14 +7,14 @@ This is our internal software to pre- and post-process MOLPRO calculations.
 The latest version is available from GitHub.
 
 ```
-pip install git+ssh://git@github.com:yuzie007/helpro.git
+pip install git+https://github.com:imw-md/helpro.git
 ```
 
 If you wish to join development, you should have source codes of the package
 and install it in the editable mode as
 
 ```
-git clone git@github.com:yuzie007/helpro.git
+git clone git@github.com:imw-md/helpro.git
 cd helpro
 pip install -e .
 ```
