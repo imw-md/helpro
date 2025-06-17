@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<molpro xmlns="http://www.molpro.net/schema/molpro-output"
+  xmlns:xsd="http://www.w3.org/1999/XMLSchema"
+  xmlns:cml="http://www.xml-cml.org/schema"
+  xmlns:stm="http://www.xml-cml.org/schema"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+ <job>
+  <jobstep command="DF-HF-SCF" commandset="SCFPRO">
+   <cml:molecule>
+    <cml:symmetry pointGroup="C1">
+    </cml:symmetry>
+    <cml:atomArray>
+     <cml:atom id="a1" elementType="C" x3="0.0" y3="0.0" z3="0.0"/>
+    </cml:atomArray>
+    <cml:bondArray>
+    </cml:bondArray>
+   </cml:molecule>
+   <property name="Energy" method="RHF" principal="true" stateSymmetry="1" stateNumber="1"
+     value="-37.682415354712"/>
+   <property name="One-electron energy" method="RHF" value="-50.4470765864373"/>
+   <property name="Two-electron energy" method="RHF" value="12.7646612317253"/>
+   <property name="Kinetic energy" method="RHF" value="37.6824185181963"/>
+   <property name="Nuclear energy" method="RHF" value="0.0"/>
+   <property name="Virial quotient" method="RHF" value="-0.9999999160488"/>
+   <property name="Dipole moment" method="RHF" principal="true" stateSymmetry="1"
+     stateNumber="1"
+     value="-0.159130925367147E-16 0.148374974622858E-15 -0.651431994478988E-16"/>
+   <time start="15:38:26" end="15:38:30" cpu="1.93" system="1.58" real="3.63"/>
+   <storage units="megabyte" memory="0.0" sf="0.04" df="347.55" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-HF/cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="DF-CABS" commandset="CCSD">
+   <property name="" method="Singles Contributions MO" stateSymmetry="1" stateNumber="1"
+     value="-0.282615913527454E-02 -0.135766370305453E-02 -0.146849543222001E-02"/>
+   <property name="" method="Singles Contributions CABS" stateSymmetry="1" stateNumber="1"
+     value="-0.317917378542122E-02 -0.289823492463894E-02 -0.28093886078227E-03"/>
+   <property name="" method="Pure DF-RHF relaxation" stateSymmetry="1" stateNumber="1"
+     value="-0.275736859289843E-02"/>
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-37.682415354712"/>
+   <property name="correction to RHF" method="CABS relaxation" stateSymmetry="1"
+     stateNumber="1" value="-0.275736859289843E-02"/>
+   <property name="energy" method="New reference" stateSymmetry="1" stateNumber="1"
+     value="-37.6851727233049"/>
+   <property name="energy" method="RMP2-F12:RHF+CABS-relax" principal="true"
+     stateSymmetry="1" stateNumber="1" value="-37.6851727233049"/>
+   <time start="15:38:30" end="15:38:30" cpu="0.1" system="0.02" real="0.13"/>
+   <storage units="megabyte" memory="0.0" sf="0.88" df="347.55" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-CABS/cc-pVDZ"/>
+  </jobstep>
+  <jobstep command="DF-MP2-F12" commandset="CCSD">
+   <property name="" method="Singles Contributions MO" stateSymmetry="1" stateNumber="1"
+     value="-0.282615913527454E-02 -0.135766370305448E-02 -0.146849543222007E-02"/>
+   <property name="" method="Singles Contributions CABS" stateSymmetry="1" stateNumber="1"
+     value="-0.317917378540868E-02 -0.289823492463761E-02 -0.280938860771071E-03"/>
+   <property name="" method="Pure DF-RHF relaxation" stateSymmetry="1" stateNumber="1"
+     value="-0.27573685928877E-02"/>
+   <property name="" method="RMP2-F12/3C(FIX)" stateSymmetry="1" stateNumber="1"
+     value="-0.218681128576853E-01 -0.182139426542154E-01 -0.365417020346991E-02 0.0"/>
+   <property name="" method="RMP2-F12/3*C(FIX)" stateSymmetry="1" stateNumber="1"
+     value="-0.224445738505899E-01 -0.185674592014181E-01 -0.387711464917178E-02 0.0"/>
+   <property name="" method="RMP2-F12/3*C(DX)" stateSymmetry="1" stateNumber="1"
+     value="-0.228082342736196E-01 -0.187429654518387E-01 -0.406526882178093E-02 0.0"/>
+   <property name="" method="RMP2-F12/3*C(FIX,DX)" stateSymmetry="1" stateNumber="1"
+     value="-0.218819657813178E-01 -0.186821718072744E-01 -0.319979397404344E-02 0.0"/>
+   <property name="" method="RMP2" stateSymmetry="1" stateNumber="1"
+     value="-0.526755342635764E-01 -0.432023295679951E-01 -0.94732046955813E-02 0.0"/>
+   <property name="" method="RMP2-F12/3C(FIX)" stateSymmetry="1" stateNumber="1"
+     value="-0.745436471212617E-01 -0.614162722222104E-01 -0.131273748990512E-01 0.0"/>
+   <property name="" method="RMP2-F12/3*C(FIX)" stateSymmetry="1" stateNumber="1"
+     value="-0.751201081141663E-01 -0.617697887694132E-01 -0.133503193447531E-01 0.0"/>
+   <property name="" method="RMP2-F12/3*C(DX)" stateSymmetry="1" stateNumber="1"
+     value="-0.75483768537196E-01 -0.619452950198338E-01 -0.135384735173622E-01 0.0"/>
+   <property name="" method="RMP2-F12/3*C(FIX,DX)" stateSymmetry="1" stateNumber="1"
+     value="-0.745575000448942E-01 -0.618845013752695E-01 -0.126729986696247E-01 0.0"/>
+   <property name="energy" method="Reference" stateSymmetry="1" stateNumber="1"
+     value="-37.682415354712"/>
+   <property name="correction to RHF" method="CABS relaxation" stateSymmetry="1"
+     stateNumber="1" value="-0.27573685928877E-02"/>
+   <property name="energy" method="New reference" stateSymmetry="1" stateNumber="1"
+     value="-37.6851727233049"/>
+   <property name="energy" method="RMP2-F12 singles (MO)" stateSymmetry="1" stateNumber="1"
+     value="-0.282615913527454E-02"/>
+   <property name="energy" method="RMP2-F12 pair" stateSymmetry="1" stateNumber="1"
+     value="-0.745436471212599E-01"/>
+   <property name="energy" method="RMP2-F12 correlation" stateSymmetry="1" stateNumber="1"
+     value="-0.773698062565344E-01"/>
+   <property name="energy" method="RMP2-F12/3C(FIX)" principal="true" stateSymmetry="1"
+     stateNumber="1" value="-37.7625425295615"/>
+   <time start="15:38:30" end="15:38:30" cpu="0.18" system="0.03" real="0.24"/>
+   <storage units="megabyte" memory="0.0" sf="6.13" df="347.55" eaf="0.0" ga="0.0"/>
+   <summary overall_method="DF-MP2-F12/cc-pVDZ"/>
+  </jobstep>
+  <stm:metadataList>
+   <stm:metadata name="dc:date" content="2025-05-13T15:38:30+02:00"/>
+   <stm:metadata name="dc:creator" content="st_ac135682"/>
+   <stm:metadata name="cmlm:insilico" content="Molpro"/>
+  </stm:metadataList>
+  <platform>
+   <version major="2021" minor="3" SHA="8b8f1fffdd8ed686b3bdbdb000c23abeeca3c440"
+     integer_bits="64" parallelism="mpp">
+    2021.3
+    <date year="2025" month="5" day="13" hour="15" minute="38" second="26">
+     2025-05-13T15:38:26
+    </date>
+   </version>
+   <licence id="uulm"/>
+   <parallel processes="12" nodes="1" all_processes="12" openmp="1"/>
+   <dimensions natom="400" nvalence="500" nvalence_pno="1000" nbasis="12000" nstate="100"
+     nsymm="16" nrec="512" nprim="2" ncol="100"/>
+  </platform>
+  <input>
+   <p>GPRINT,ORBITALS</p>
+   <p>ANGSTROM</p>
+   <p>GEOMETRY=initial.xyz</p>
+   <include file="/lustre/home/st/st_us-031401/st_ac135682/2022/CCSD_MLIP_AF/data/molpro/sp/atoms/C/DF-MP2-F12/cc-pVDZ/c+0/s+2/initial.xyz"/>
+   <p>BASIS=cc-pVDZ</p>
+   <p>{DF-HF;WF,CHARGE=0,SPIN=2}</p>
+   <p>{DF-CABS}</p>
+   <p>{DF-MP2-F12}</p>
+  </input>
+  <diagnostics warnings="0"/>
+ </job>
+</molpro>

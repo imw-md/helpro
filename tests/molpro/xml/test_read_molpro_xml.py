@@ -1,7 +1,6 @@
 """Tests for `read_molpro_xml`."""
 
 import os
-from abc import ABC, abstractmethod
 from pathlib import Path
 
 import numpy as np
@@ -159,6 +158,31 @@ class TestsC:
     def test_energies(self, *, method: str) -> None:
         """Test energies."""
         p = Path(__file__).parent / "data" / "C"
+        p = p / method / "molpro.xml"
+        atoms = read_molpro_xml(p)
+        refs = self._get_refs(method)
+        results = atoms.calc.results
+        keys = ["energy", "correlation_energy", "MP2_energy", "MP2_F12_energy"]
+        for key, ref in zip(keys, refs, strict=False):
+            assert results[key] * eV / Hartree == pytest.approx(ref)
+
+
+class TestsCm3:
+    """Tests for `C` with the multiplicity of 3."""
+
+    @staticmethod
+    def _get_refs(method: str) -> tuple[float, ...]:
+        return {
+            "DF-MP2-F12": (
+                -37.7625425295615,
+                -0.773698062565344e-01,
+            ),
+        }[method]
+
+    @pytest.mark.parametrize("method", get_parameters_basic("Cm3"))
+    def test_energies(self, *, method: str) -> None:
+        """Test energies."""
+        p = Path(__file__).parent / "data" / "Cm3"
         p = p / method / "molpro.xml"
         atoms = read_molpro_xml(p)
         refs = self._get_refs(method)

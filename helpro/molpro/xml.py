@@ -272,7 +272,10 @@ class EnergyParserMP2(EnergyParser):
             value = float(child.attrib["value"].split()[-1])
             if name == "correlation energy":
                 results[self.keyc] = value
-            if name == "energy" and method == "DF-RMP2 correlation":
+            if name == "energy" and method in {
+                "DF-RMP2 correlation",
+                "RMP2-F12 correlation",
+            }:
                 results[self.keyc] = value
             if name == "total energy" and principal:  # MP2, MP2-F12
                 results[self.keyt] = value
