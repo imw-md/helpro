@@ -240,7 +240,7 @@ def validate_options(options: str | list[str] | None) -> list[str]:
     if isinstance(options, str):
         options = [options]
     options = [option.upper() for option in options]
-    options_all = "FORCES", "OPTG", "COUNTERPOISE"
+    options_all = "FORCES", "OPTG", "FREQUENCIES", "COUNTERPOISE"
     for option in options:
         if all(not option.startswith(_) for _ in options_all):
             raise ValueError(option)
@@ -294,7 +294,7 @@ class MolproInputWriter:
         Charge.
     multiplicity : int | None, default: None
         Spin multiplicity.
-    options : {"FORCES", "OPTG", "COUNTERPOISE"}
+    options : {"FORCES", "OPTG", "FREQUENCIES", "COUNTERPOISE"}
         Option(s).
     geometry : str, default: "initial.xyz"
         Geometry file.
