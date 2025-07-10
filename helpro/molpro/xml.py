@@ -230,11 +230,9 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
     energy_parsers = get_energy_parsers()
 
     commands = []
-    info = {}
+    info = {"cpu_time": 0.0, "real_time": 0.0}
     atoms = None
     images = []
-    cpu_time = 0.0
-    real_time = 0.0
     for jobstep in job.findall("jobstep", namespaces):
         command = jobstep.attrib["command"]
         if command in energy_parsers:
@@ -260,16 +258,13 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
 
         time = jobstep.find("time", namespaces)
         if time is not None:
-            cpu_time += float(time.attrib.get("cpu", float("nan")))
-            real_time += float(time.attrib.get("real", float("nan")))
+            info["cpu_time"] += float(time.attrib.get("cpu", "nan"))
+            info["real_time"] += float(time.attrib.get("real", "nan"))
 
         storage = jobstep.find("storage", namespaces)
         if storage is not None:
             for attrib in ["sf", "df", "eaf", "ga"]:
                 info[attrib] = float(storage.attrib[attrib])
-
-    info["cpu_time"] = cpu_time
-    info["real_time"] = real_time
 
     info.update(parser.platform)
 
