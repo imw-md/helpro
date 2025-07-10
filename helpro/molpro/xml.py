@@ -54,8 +54,14 @@ class MolproXMLParser:
         self,
         jobstep: ET.Element,
         command: str,
-    ) -> tuple[dict[str, float], Atoms | None]:
-        """Parse energy."""
+    ) -> tuple[Atoms | None, dict[str, float], dict[str, float]]:
+        """Parse energy.
+
+        Returns
+        -------
+        atoms, parameters, results
+
+        """
         results = {}
         command = jobstep.attrib["command"]
 
@@ -85,7 +91,14 @@ class MolproXMLParser:
         return atoms, parameters, results
 
     def parse_atom_array_tag(self, atom_array: ET.Element) -> Atoms:
-        """Parse "atomArray" tag."""
+        """Parse "atomArray" tag.
+
+        Returns
+        -------
+        Atoms
+            ASE :class:`~ase.Atoms` object.
+
+        """
         symbols = []
         positions = []
         for child in atom_array:
@@ -156,14 +169,28 @@ class MolproXMLParser:
         return dea + deb
 
     def parse_forces(self, jobstep: ET.Element) -> np.ndarray:
-        """Parse `gradient`."""
+        """Parse `gradient`.
+
+        Returns
+        -------
+        forces : np.ndarray
+            Forces on atoms.
+
+        """
         child = jobstep.find("gradient", namespaces)
         gradient = np.array(child.text.split(), dtype=float).reshape(-1, 3)
         return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
 
 
 def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
-    """Read MOLPRO xml file."""
+    """Read MOLPRO xml file.
+
+    Returns
+    -------
+    Atoms
+        ASE :class:`~ase.Atoms` object.
+
+    """
     parser = MolproXMLParser()
 
     try:
@@ -419,7 +446,13 @@ class EnergyParserRPA(EnergyParser):
 
 
 def get_energy_parsers() -> dict[str, EnergyParser]:
-    """Get energy parsers."""
+    """Get energy parsers.
+
+    Returns
+    -------
+    dict
+
+    """
     d = {
         ("HF-SCF", "DF-HF-SCF", "KS-SCF", "DF-KS-SCF"): EnergyParserSCF,
         ("DF-MP2", "DF-MP2-F12"): EnergyParserMP2,
@@ -436,7 +469,14 @@ def get_energy_parsers() -> dict[str, EnergyParser]:
 
 
 def parse_input_tag(job: ET.Element) -> bool:
-    """Parse "input" tag."""
+    """Parse "input" tag.
+
+    Returns
+    -------
+    bool
+        :py:`True` if the positions are in angstrom.
+
+    """
     is_angstrom = False
     input_tag = job.find("input", namespaces)
     for child in input_tag:
