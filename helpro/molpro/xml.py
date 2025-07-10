@@ -220,9 +220,7 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
         return atoms
     root = tree.getroot()
     job = root.find("job", namespaces)
-    is_angstrom = parse_input_tag(job)
-
-    parser.is_angstrom = is_angstrom
+    parser.is_angstrom = parse_input_tag(job)
 
     parser.parse_platform(job.find("platform", namespaces))
 
