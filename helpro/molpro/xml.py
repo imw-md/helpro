@@ -183,6 +183,23 @@ def _parse_forces(jobstep: ET.Element) -> np.ndarray:
     return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
 
 
+def _parse_frequencies(jobstep: ET.Element) -> np.ndarray:
+    """Parse `vibrations`.
+
+    Returns
+    -------
+    modes : np.ndarray
+        Vibrational modes.
+
+    """
+    child = jobstep.find("vibrations", namespaces)
+    modes = []
+    for element in child:
+        mode = np.array(element.text.split(), dtype=float).reshape(-1, 3)
+        modes.append(mode)
+    return np.array(modes)
+
+
 def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
     """Read MOLPRO xml file.
 
@@ -235,6 +252,9 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
         elif command == "FORCES":
             atoms = images[-1]
             atoms.calc.results["forces"] = _parse_forces(jobstep)
+        elif command == "FREQ":
+            atoms = images[-1]
+            atoms.calc.results["modes"] = _parse_frequencies(jobstep)
         commands.append(command)
 
         time = jobstep.find("time", namespaces)
