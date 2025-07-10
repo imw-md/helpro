@@ -203,6 +203,16 @@ def _parse_frequencies(jobstep: ET.Element) -> dict[str, np.ndarray]:
     return {"wavenumbers": wavenumbers[::-1], "modes": modes[::-1]}
 
 
+def _update_time(time: ET.Element, info: dict) -> None:
+    info["cpu_time"] += float(time.attrib.get("cpu", "nan"))
+    info["real_time"] += float(time.attrib.get("real", "nan"))
+
+
+def _update_storage(storage: ET.Element, info: dict) -> None:
+    for attrib in ["sf", "df", "eaf", "ga"]:
+        info[attrib] = float(storage.attrib[attrib])
+
+
 def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
     """Read MOLPRO xml file.
 
@@ -227,15 +237,13 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
 
     parser.parse_platform(job.find("platform", namespaces))
 
-    energy_parsers = get_energy_parsers()
-
     commands = []
     info = {"cpu_time": 0.0, "real_time": 0.0}
     atoms = None
     images = []
     for jobstep in job.findall("jobstep", namespaces):
         command = jobstep.attrib["command"]
-        if command in energy_parsers:
+        if command in get_energy_parsers():
             _, parameters, energies = parser.parse_energy(jobstep, command)
             atoms = atoms.copy() if _ is None else _  # copy previous one if absent
             calc = SinglePointCalculator(atoms)
@@ -256,15 +264,13 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
             atoms.calc.results.update(_parse_frequencies(jobstep))
         commands.append(command)
 
-        time = jobstep.find("time", namespaces)
-        if time is not None:
-            info["cpu_time"] += float(time.attrib.get("cpu", "nan"))
-            info["real_time"] += float(time.attrib.get("real", "nan"))
+        element = jobstep.find("time", namespaces)
+        if element is not None:
+            _update_time(element, info)
 
-        storage = jobstep.find("storage", namespaces)
-        if storage is not None:
-            for attrib in ["sf", "df", "eaf", "ga"]:
-                info[attrib] = float(storage.attrib[attrib])
+        element = jobstep.find("storage", namespaces)
+        if element is not None:
+            _update_storage(element, info)
 
     info.update(parser.platform)
 
