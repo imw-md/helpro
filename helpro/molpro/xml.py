@@ -168,18 +168,19 @@ class MolproXMLParser:
             deb *= -1.0
         return dea + deb
 
-    def parse_forces(self, jobstep: ET.Element) -> np.ndarray:
-        """Parse `gradient`.
 
-        Returns
-        -------
-        forces : np.ndarray
-            Forces on atoms.
+def _parse_forces(jobstep: ET.Element) -> np.ndarray:
+    """Parse `gradient`.
 
-        """
-        child = jobstep.find("gradient", namespaces)
-        gradient = np.array(child.text.split(), dtype=float).reshape(-1, 3)
-        return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
+    Returns
+    -------
+    forces : np.ndarray
+        Forces on atoms.
+
+    """
+    child = jobstep.find("gradient", namespaces)
+    gradient = np.array(child.text.split(), dtype=float).reshape(-1, 3)
+    return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
 
 
 def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
@@ -233,7 +234,7 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
             atoms.calc.results["energy"] += correction
         elif command == "FORCES":
             atoms = images[-1]
-            atoms.calc.results["forces"] = parser.parse_forces(jobstep)
+            atoms.calc.results["forces"] = _parse_forces(jobstep)
         commands.append(command)
 
         time = jobstep.find("time", namespaces)
