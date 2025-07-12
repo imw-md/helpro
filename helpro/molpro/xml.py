@@ -84,8 +84,8 @@ class MolproXMLParser:
 
         if len(jobstep.findall("error", namespaces)) != 0:
             for child in jobstep.findall("error", namespaces):
-                warnings.warn(child.attrib["message"], stacklevel=1)
-                if child.attrib["type"] == "Warning":
+                warnings.warn(child.attrib.get("message", ""), stacklevel=1)
+                if child.attrib.get("type", "") == "Warning":
                     results = {}
 
         return atoms, parameters, results
