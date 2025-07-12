@@ -54,8 +54,14 @@ class MolproXMLParser:
         self,
         jobstep: ET.Element,
         command: str,
-    ) -> tuple[dict[str, float], Atoms | None]:
-        """Parse energy."""
+    ) -> tuple[Atoms | None, dict[str, float], dict[str, float]]:
+        """Parse energy.
+
+        Returns
+        -------
+        atoms, parameters, results
+
+        """
         results = {}
         command = jobstep.attrib["command"]
 
@@ -85,7 +91,14 @@ class MolproXMLParser:
         return atoms, parameters, results
 
     def parse_atom_array_tag(self, atom_array: ET.Element) -> Atoms:
-        """Parse "atomArray" tag."""
+        """Parse "atomArray" tag.
+
+        Returns
+        -------
+        Atoms
+            ASE :class:`~ase.Atoms` object.
+
+        """
         symbols = []
         positions = []
         for child in atom_array:
@@ -155,15 +168,60 @@ class MolproXMLParser:
             deb *= -1.0
         return dea + deb
 
-    def parse_forces(self, jobstep: ET.Element) -> np.ndarray:
-        """Parse `gradient`."""
-        child = jobstep.find("gradient", namespaces)
-        gradient = np.array(child.text.split(), dtype=float).reshape(-1, 3)
-        return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
+
+def _parse_forces(jobstep: ET.Element) -> np.ndarray:
+    """Parse `gradient`.
+
+    Returns
+    -------
+    forces : np.ndarray
+        Forces on atoms.
+
+    """
+    child = jobstep.find("gradient", namespaces)
+    gradient = np.array(child.text.split(), dtype=float).reshape(-1, 3)
+    return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
+
+
+def _parse_frequencies(jobstep: ET.Element) -> dict[str, np.ndarray]:
+    """Parse `vibrations`.
+
+    Returns
+    -------
+    modes : dict[str, np.ndarray]
+        Vibrational modes.
+
+    """
+    child = jobstep.find("vibrations", namespaces)
+    wavenumbers = []
+    modes = []
+    for element in child:
+        wavenumbers.append(float(element.attrib["wavenumber"]))
+        mode = np.array(element.text.split(), dtype=float).reshape(-1, 3)
+        modes.append(mode)
+    modes = np.array(modes)
+    return {"wavenumbers": wavenumbers[::-1], "modes": modes[::-1]}
+
+
+def _update_time(time: ET.Element, info: dict) -> None:
+    info["cpu_time"] += float(time.attrib.get("cpu", "nan"))
+    info["real_time"] += float(time.attrib.get("real", "nan"))
+
+
+def _update_storage(storage: ET.Element, info: dict) -> None:
+    for attrib in ["sf", "df", "eaf", "ga"]:
+        info[attrib] = float(storage.attrib[attrib])
 
 
 def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
-    """Read MOLPRO xml file."""
+    """Read MOLPRO xml file.
+
+    Returns
+    -------
+    Atoms
+        ASE :class:`~ase.Atoms` object.
+
+    """
     parser = MolproXMLParser()
 
     try:
@@ -173,25 +231,19 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
         atoms.calc = SinglePointCalculator(atoms)
         atoms.calc.results.update(parser.platform)
         return atoms
-    root = tree.getroot()
-    job = root.find("job", namespaces)
-    is_angstrom = parse_input_tag(job)
 
-    parser.is_angstrom = is_angstrom
+    job = tree.getroot().find("job", namespaces)
+    parser.is_angstrom = parse_input_tag(job)
 
     parser.parse_platform(job.find("platform", namespaces))
 
-    energy_parsers = get_energy_parsers()
-
     commands = []
-    info = {}
+    info = {"cpu_time": 0.0, "real_time": 0.0}
     atoms = None
     images = []
-    cpu_time = 0.0
-    real_time = 0.0
     for jobstep in job.findall("jobstep", namespaces):
         command = jobstep.attrib["command"]
-        if command in energy_parsers:
+        if command in get_energy_parsers():
             _, parameters, energies = parser.parse_energy(jobstep, command)
             atoms = atoms.copy() if _ is None else _  # copy previous one if absent
             calc = SinglePointCalculator(atoms)
@@ -206,21 +258,19 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
             atoms.calc.results["energy"] += correction
         elif command == "FORCES":
             atoms = images[-1]
-            atoms.calc.results["forces"] = parser.parse_forces(jobstep)
+            atoms.calc.results["forces"] = _parse_forces(jobstep)
+        elif command == "FREQ":
+            atoms = images[-1]
+            atoms.calc.results.update(_parse_frequencies(jobstep))
         commands.append(command)
 
-        time = jobstep.find("time", namespaces)
-        if time is not None:
-            cpu_time += float(time.attrib.get("cpu", float("nan")))
-            real_time += float(time.attrib.get("real", float("nan")))
+        element = jobstep.find("time", namespaces)
+        if element is not None:
+            _update_time(element, info)
 
-        storage = jobstep.find("storage", namespaces)
-        if storage is not None:
-            for attrib in ["sf", "df", "eaf", "ga"]:
-                info[attrib] = float(storage.attrib[attrib])
-
-    info["cpu_time"] = cpu_time
-    info["real_time"] = real_time
+        element = jobstep.find("storage", namespaces)
+        if element is not None:
+            _update_storage(element, info)
 
     info.update(parser.platform)
 
@@ -419,7 +469,13 @@ class EnergyParserRPA(EnergyParser):
 
 
 def get_energy_parsers() -> dict[str, EnergyParser]:
-    """Get energy parsers."""
+    """Get energy parsers.
+
+    Returns
+    -------
+    dict
+
+    """
     d = {
         ("HF-SCF", "DF-HF-SCF", "KS-SCF", "DF-KS-SCF"): EnergyParserSCF,
         ("DF-MP2", "DF-MP2-F12"): EnergyParserMP2,
@@ -436,7 +492,14 @@ def get_energy_parsers() -> dict[str, EnergyParser]:
 
 
 def parse_input_tag(job: ET.Element) -> bool:
-    """Parse "input" tag."""
+    """Parse "input" tag.
+
+    Returns
+    -------
+    bool
+        :py:`True` if the positions are in angstrom.
+
+    """
     is_angstrom = False
     input_tag = job.find("input", namespaces)
     for child in input_tag:
