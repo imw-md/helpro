@@ -239,7 +239,7 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
 
     commands = []
     info = {"cpu_time": 0.0, "real_time": 0.0}
-    atoms = None
+    atoms = Atoms()
     images = []
     for jobstep in job.findall("jobstep", namespaces):
         command = jobstep.attrib["command"]
