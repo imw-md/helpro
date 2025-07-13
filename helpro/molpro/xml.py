@@ -84,8 +84,8 @@ class MolproXMLParser:
 
         if len(jobstep.findall("error", namespaces)) != 0:
             for child in jobstep.findall("error", namespaces):
-                warnings.warn(child.attrib["message"], stacklevel=1)
-                if child.attrib["type"] == "Warning":
+                warnings.warn(child.attrib.get("message", ""), stacklevel=1)
+                if child.attrib.get("type", "") == "Warning":
                     results = {}
 
         return atoms, parameters, results
@@ -239,7 +239,7 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
 
     commands = []
     info = {"cpu_time": 0.0, "real_time": 0.0}
-    atoms = None
+    atoms = Atoms()
     images = []
     for jobstep in job.findall("jobstep", namespaces):
         command = jobstep.attrib["command"]
