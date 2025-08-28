@@ -128,3 +128,36 @@ def test_options(tmp_path: Path) -> None:
         s = f.read()
 
     assert s == sref
+
+
+def test_template(tmp_path: Path) -> None:
+    """Test if `template` can be provided."""
+    tpl = (
+        r"GPRINT,ORBITALS",
+        r"GCOSMO,epsilon=78.3553",
+        r"NOSYM",
+        r"{{geometry}}",
+        r"{{basis}}",
+        r"{{method}}",
+    )
+    path_tpl = tmp_path / "molpro.inp.j2"
+    with path_tpl.open("w", encoding="utf-8") as fd:
+        fd.writelines("".join(f"{_}\n" for _ in tpl))
+
+    sref = (
+        r"GPRINT,ORBITALS",
+        r"GCOSMO,epsilon=78.3553",
+        r"NOSYM",
+        r"ANGSTROM",
+        r"GEOMETRY=initial.xyz",
+        r"BASIS=cc-pVDZ",
+        r"{HF}",
+    )
+    sref = "".join(f"{_}\n" for _ in sref)
+
+    miw = MolproInputWriter(method="HF", basis="cc-pVDZ", template=path_tpl)
+    path = tmp_path / "molpro.inp"
+    miw.write(fname=path)
+    with path.open("r", encoding="utf-8") as f:
+        s = f.read()
+    assert s == sref
