@@ -276,6 +276,17 @@ class MolproInputGeometry:
         return "\n".join(lines)
 
 
+def _make_default_template() -> tuple[str]:
+    lines = (
+        r"GPRINT,ORBITALS",
+        r"NOSYM",
+        r"{{geometry}}",
+        r"BASIS={{basis}}",
+        r"{{method}}",
+    )
+    return tuple(f"{_}\n" for _ in lines)
+
+
 @dataclass(slots=True)
 class MolproInputWriter:
     """Writer of MOLPRO input file.
@@ -312,11 +323,19 @@ class MolproInputWriter:
     charge: int | None = None
     multiplicity: int | None = None
     options: list[str] | str | None = None
+    template: tuple[str] = field(default_factory=_make_default_template)
 
     def __post_init__(self) -> None:
         """Post-process attributes."""
         if isinstance(self.geometry, str):
             self.geometry = MolproInputGeometry(self.geometry)
+        if isinstance(self.template, Path | str):
+            if isinstance(self.template, str):
+                path = Path(self.template)
+            else:
+                path = self.template
+            with path.open(encoding="utf-8") as fd:
+                self.template = tuple(fd.readlines())
 
     def write(self, fname: str | None = None) -> None:
         """Write MOLPRO input file.
@@ -343,15 +362,6 @@ class MolproInputWriter:
 
         self.options = validate_options(self.options)
 
-        lines = (
-            r"GPRINT,ORBITALS",
-            r"NOSYM",
-            self.geometry.make_lines(),
-            r"BASIS=__basis__",
-            r"__method__",
-        )
-        lines = tuple(f"{_}\n" for _ in lines)
-
         basis_lines = make_basis_lines(
             self.method,
             parse_heavy_basis(self.basis),
@@ -365,13 +375,19 @@ class MolproInputWriter:
             multiplicity=self.multiplicity,
         )
 
+        dct = {
+            r"{{geometry}}": self.geometry.make_lines(),
+            r"{{basis}}": basis_lines,
+            r"{{method}}": method_lines,
+        }
+
         p = Path(fname)
         with p.open("w", encoding="utf-8") as f:
-            for line in lines:
-                if "__basis__" in line:
-                    f.write(line.replace("__basis__", basis_lines))
-                elif "__method__" in line:
-                    f.write(line.replace("__method__", method_lines))
+            for line in self.template:
+                for k, v in dct.items():
+                    if k in line:
+                        f.write(line.replace(k, v))
+                        break
                 else:
                     f.write(line)
             for option in self.options:
@@ -388,6 +404,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--geometry", default="initial.xyz")
     parser.add_argument("--charge", type=int)
     parser.add_argument("--multiplicity", type=int)
+    parser.add_argument("-t", "--template", help="Template filename")
 
 
 def run(args: argparse.Namespace) -> None:
@@ -404,5 +421,6 @@ def run(args: argparse.Namespace) -> None:
         geometry=args.geometry,
         charge=args.charge,
         multiplicity=args.multiplicity,
+        template=args.template,
     )
     miw.write("molpro.inp")
