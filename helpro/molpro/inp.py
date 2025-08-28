@@ -197,10 +197,11 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
         Commnd for the basis set.
 
     """
+    basis = parse_heavy_basis(basis)
     props = methods_all[method]
     if props.is_ksrpa:
         lines = (
-            r"{",
+            r"BASIS={",
             r"SET,ORBITAL",
             f"DEFAULT={basis}",
             r"SET,MP2FIT",
@@ -210,7 +211,7 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
         return "\n".join(lines)
     if props.is_acfd:
         lines = (
-            r"{",
+            r"BASIS={",
             r"SET,ORBITAL",
             f"DEFAULT={basis}",
             r"SET,RI,CONTEXT=MP2FIT",
@@ -218,7 +219,7 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
             r"}",
         )
         return "\n".join(lines)
-    return basis
+    return f"BASIS={basis}"
 
 
 def validate_options(options: str | list[str] | None) -> list[str]:
@@ -281,7 +282,7 @@ def _make_default_template() -> tuple[str]:
         r"GPRINT,ORBITALS",
         r"NOSYM",
         r"{{geometry}}",
-        r"BASIS={{basis}}",
+        r"{{basis}}",
         r"{{method}}",
     )
     return tuple(f"{_}\n" for _ in lines)
@@ -362,10 +363,7 @@ class MolproInputWriter:
 
         self.options = validate_options(self.options)
 
-        basis_lines = make_basis_lines(
-            self.method,
-            parse_heavy_basis(self.basis),
-        )
+        basis_lines = make_basis_lines(self.method, self.basis)
 
         method_lines = make_method_lines(
             self.method,

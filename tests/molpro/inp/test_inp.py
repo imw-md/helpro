@@ -137,7 +137,7 @@ def test_template(tmp_path: Path) -> None:
         r"GCOSMO,epsilon=78.3553",
         r"NOSYM",
         r"{{geometry}}",
-        r"BASIS={{basis}}",
+        r"{{basis}}",
         r"{{method}}",
     )
     path_tpl = tmp_path / "molpro.inp.j2"
