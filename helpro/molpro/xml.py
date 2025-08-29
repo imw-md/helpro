@@ -16,30 +16,24 @@ namespaces = {
 }
 
 
-class MolproXMLParser:
-    """Parser of `molpro.xml`."""
+def _parse_platform(platform: ET.Element) -> dict[str, int]:
+    """Parse "platform" element.
 
-    def __init__(self) -> None:
-        """Initialize."""
-        self.platform = {
-            "major": -1,
-            "minor": -1,
-            "processes": -1,
-            "nodes": -1,
-            "openmp": -1,
-        }
+    Returns
+    -------
+    dict[str, int]
+        Dictionary of the platform information.
 
-    def parse_platform(self, platform: ET.Element) -> dict:
-        """Parse "platform" element."""
-        version = platform.find("version", namespaces)
-        parallel = platform.find("parallel", namespaces)
-        self.platform = {
-            "major": int(version.attrib["major"]),
-            "minor": int(version.attrib["minor"]),
-            "processes": int(parallel.attrib["processes"]),
-            "nodes": int(parallel.attrib["nodes"]),
-            "openmp": int(parallel.attrib["openmp"]),
-        }
+    """
+    version = platform.find("version", namespaces)
+    parallel = platform.find("parallel", namespaces)
+    return {
+        "major": int(version.attrib["major"]),
+        "minor": int(version.attrib["minor"]),
+        "processes": int(parallel.attrib["processes"]),
+        "nodes": int(parallel.attrib["nodes"]),
+        "openmp": int(parallel.attrib["openmp"]),
+    }
 
 
 def _parse_input_tag(job: ET.Element) -> bool:
@@ -310,21 +304,21 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
         ASE :class:`~ase.Atoms` object.
 
     """
-    parser = MolproXMLParser()
+    platform = {"major": -1, "minor": -1, "processes": -1, "nodes": -1, "openmp": -1}
 
     try:
         job = ET.parse(filename).getroot().find("job", namespaces)
     except ET.ParseError:
         atoms = Atoms()
         atoms.calc = SinglePointCalculator(atoms)
-        atoms.calc.results.update(parser.platform)
+        atoms.calc.results.update(platform)
         return atoms
 
     is_angstrom = _parse_input_tag(job)
 
-    parser.parse_platform(job.find("platform", namespaces))
+    platform = _parse_platform(job.find("platform", namespaces))
 
-    images = _parse_images(job, is_angstrom=is_angstrom, platform=parser.platform)
+    images = _parse_images(job, is_angstrom=is_angstrom, platform=platform)
 
     if isinstance(index, str):
         index = string2index(index)
