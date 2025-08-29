@@ -50,65 +50,71 @@ class MolproXMLParser:
             "openmp": int(parallel.attrib["openmp"]),
         }
 
-    def parse_counterpoise(self, jobstep: ET.Element, command: str) -> float:
-        """Parse the COUNTERPOISE jobstep.
 
-        The COUNTERPOISE jobstep consists of four sets of subjobsteps (for a dimer).
+def _parse_counterpoise(
+    jobstep: ET.Element,
+    command: str,
+    *,
+    is_angstrom: bool,
+    platform: dict[str, int],
+) -> float:
+    """Parse the COUNTERPOISE jobstep.
 
-        The order of the monomer calculations depends on the Molpro version.
+    The COUNTERPOISE jobstep consists of four sets of subjobsteps (for a dimer).
 
-        In 2021.3:
+    The order of the monomer calculations depends on the Molpro version.
 
-        - 1st monomer without ghost atoms
-        - 2nd monomer without ghost atoms
-        - 1st monomer with ghost atoms
-        - 2nd monomer with ghost atoms
+    In 2021.3:
 
-        In 2024.1:
+    - 1st monomer without ghost atoms
+    - 2nd monomer without ghost atoms
+    - 1st monomer with ghost atoms
+    - 2nd monomer with ghost atoms
 
-        - 1st monomer with ghost atoms
-        - 2nd monomer with ghost atoms
-        - 1st monomer without ghost atoms
-        - 2nd monomer without ghost atoms
+    In 2024.1:
 
-        Returns
-        -------
-        float
-            Counterpoise correction.
+    - 1st monomer with ghost atoms
+    - 2nd monomer with ghost atoms
+    - 1st monomer without ghost atoms
+    - 2nd monomer without ghost atoms
 
-        Raises
-        ------
-        RuntimeError
-            If the number of monomers is not four.
+    Returns
+    -------
+    float
+        Counterpoise correction.
 
-        """
-        subjobsteps = jobstep.findall("jobstep", namespaces)
-        subjobsteps = [_ for _ in subjobsteps if _.attrib["command"] == command]
+    Raises
+    ------
+    RuntimeError
+        If the number of monomers is not four.
 
-        # monomer
-        if len(subjobsteps) == 0:
-            return 0.0
+    """
+    subjobsteps = jobstep.findall("jobstep", namespaces)
+    subjobsteps = [_ for _ in subjobsteps if _.attrib["command"] == command]
 
-        # check number of monomers
-        if len(subjobsteps) != 4:
-            raise RuntimeError
+    # monomer
+    if len(subjobsteps) == 0:
+        return 0.0
 
-        list_results = [
-            _parse_energy(_, command, is_angstrom=self.is_angstrom)[-1]
-            for _ in subjobsteps
-        ]
+    # check number of monomers
+    if len(subjobsteps) != 4:
+        raise RuntimeError
 
-        for results in list_results:
-            if "energy" not in results:
-                warnings.warn("The energy is not available.", stacklevel=1)
-                return float("nan")
+    list_results = [
+        _parse_energy(_, command, is_angstrom=is_angstrom)[-1] for _ in subjobsteps
+    ]
 
-        dea = list_results[2]["energy"] - list_results[0]["energy"]
-        deb = list_results[3]["energy"] - list_results[1]["energy"]
-        if self.platform["major"] == 2021:
-            dea *= -1.0
-            deb *= -1.0
-        return dea + deb
+    for results in list_results:
+        if "energy" not in results:
+            warnings.warn("The energy is not available.", stacklevel=1)
+            return float("nan")
+
+    dea = list_results[2]["energy"] - list_results[0]["energy"]
+    deb = list_results[3]["energy"] - list_results[1]["energy"]
+    if platform["major"] == 2021:
+        dea *= -1.0
+        deb *= -1.0
+    return dea + deb
 
 
 def _parse_energy(
@@ -265,7 +271,12 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
             images.append(atoms)
         elif command == "COUNTERPOISE":
             atoms = images[-1]
-            correction = parser.parse_counterpoise(jobstep, commands[-1])
+            correction = _parse_counterpoise(
+                jobstep,
+                commands[-1],
+                is_angstrom=parser.is_angstrom,
+                platform=parser.platform,
+            )
             atoms.calc.results["CP_correction"] = correction
             atoms.calc.results["energy"] += correction
         elif command == "FORCES":
