@@ -225,14 +225,13 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
     parser = MolproXMLParser()
 
     try:
-        tree = ET.parse(filename)
+        job = ET.parse(filename).getroot().find("job", namespaces)
     except ET.ParseError:
         atoms = Atoms()
         atoms.calc = SinglePointCalculator(atoms)
         atoms.calc.results.update(parser.platform)
         return atoms
 
-    job = tree.getroot().find("job", namespaces)
     parser.is_angstrom = parse_input_tag(job)
 
     parser.parse_platform(job.find("platform", namespaces))
