@@ -50,49 +50,6 @@ class MolproXMLParser:
             "openmp": int(parallel.attrib["openmp"]),
         }
 
-    def parse_energy(
-        self,
-        jobstep: ET.Element,
-        command: str,
-    ) -> tuple[Atoms | None, dict[str, float], dict[str, float]]:
-        """Parse energy.
-
-        Returns
-        -------
-        atoms, parameters, results
-
-        """
-        results = {}
-        command = jobstep.attrib["command"]
-
-        child = jobstep.find("cml:molecule", namespaces)
-        if child is not None:
-            atoms = _parse_atom_array_tag(
-                child.find("cml:atomArray", namespaces),
-                is_angstrom=self.is_angstrom,
-            )
-        else:
-            atoms = None
-
-        energy_parser = get_energy_parsers()[command](namespaces)
-        results = energy_parser.fetch(jobstep)
-        for child in jobstep.findall("property", namespaces):
-            if child.attrib["name"] == "EREL":
-                keyr = "relativistic_correction"
-                results[keyr] = float(child.attrib["value"].split()[-1])
-        results = {k: v * (Hartree / eV) for k, v in results.items()}
-        if "energy" in results:
-            results["free_energy"] = results["energy"]
-        parameters = {"command": command}
-
-        if len(jobstep.findall("error", namespaces)) != 0:
-            for child in jobstep.findall("error", namespaces):
-                warnings.warn(child.attrib.get("message", ""), stacklevel=1)
-                if child.attrib.get("type", "") == "Warning":
-                    results = {}
-
-        return atoms, parameters, results
-
     def parse_counterpoise(self, jobstep: ET.Element, command: str) -> float:
         """Parse the COUNTERPOISE jobstep.
 
@@ -136,7 +93,10 @@ class MolproXMLParser:
         if len(subjobsteps) != 4:
             raise RuntimeError
 
-        list_results = [self.parse_energy(_, command)[-1] for _ in subjobsteps]
+        list_results = [
+            _parse_energy(_, command, is_angstrom=self.is_angstrom)[-1]
+            for _ in subjobsteps
+        ]
 
         for results in list_results:
             if "energy" not in results:
@@ -149,6 +109,51 @@ class MolproXMLParser:
             dea *= -1.0
             deb *= -1.0
         return dea + deb
+
+
+def _parse_energy(
+    jobstep: ET.Element,
+    command: str,
+    *,
+    is_angstrom: bool,
+) -> tuple[Atoms | None, dict[str, float], dict[str, float]]:
+    """Parse energy.
+
+    Returns
+    -------
+    atoms, parameters, results
+
+    """
+    results = {}
+    command = jobstep.attrib["command"]
+
+    child = jobstep.find("cml:molecule", namespaces)
+    if child is not None:
+        atoms = _parse_atom_array_tag(
+            child.find("cml:atomArray", namespaces),
+            is_angstrom=is_angstrom,
+        )
+    else:
+        atoms = None
+
+    energy_parser = get_energy_parsers()[command](namespaces)
+    results = energy_parser.fetch(jobstep)
+    for child in jobstep.findall("property", namespaces):
+        if child.attrib["name"] == "EREL":
+            keyr = "relativistic_correction"
+            results[keyr] = float(child.attrib["value"].split()[-1])
+    results = {k: v * (Hartree / eV) for k, v in results.items()}
+    if "energy" in results:
+        results["free_energy"] = results["energy"]
+    parameters = {"command": command}
+
+    if len(jobstep.findall("error", namespaces)) != 0:
+        for child in jobstep.findall("error", namespaces):
+            warnings.warn(child.attrib.get("message", ""), stacklevel=1)
+            if child.attrib.get("type", "") == "Warning":
+                results = {}
+
+    return atoms, parameters, results
 
 
 def _parse_atom_array_tag(atom_array: ET.Element, *, is_angstrom: bool) -> Atoms:
@@ -247,7 +252,11 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
     for jobstep in job.findall("jobstep", namespaces):
         command = jobstep.attrib["command"]
         if command in get_energy_parsers():
-            _, parameters, energies = parser.parse_energy(jobstep, command)
+            _, parameters, energies = _parse_energy(
+                jobstep,
+                command,
+                is_angstrom=parser.is_angstrom,
+            )
             atoms = atoms.copy() if _ is None else _  # copy previous one if absent
             calc = SinglePointCalculator(atoms)
             calc.parameters = parameters
