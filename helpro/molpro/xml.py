@@ -67,7 +67,10 @@ class MolproXMLParser:
 
         child = jobstep.find("cml:molecule", namespaces)
         if child is not None:
-            atoms = self.parse_atom_array_tag(child.find("cml:atomArray", namespaces))
+            atoms = _parse_atom_array_tag(
+                child.find("cml:atomArray", namespaces),
+                is_angstrom=self.is_angstrom,
+            )
         else:
             atoms = None
 
@@ -89,27 +92,6 @@ class MolproXMLParser:
                     results = {}
 
         return atoms, parameters, results
-
-    def parse_atom_array_tag(self, atom_array: ET.Element) -> Atoms:
-        """Parse "atomArray" tag.
-
-        Returns
-        -------
-        Atoms
-            ASE :class:`~ase.Atoms` object.
-
-        """
-        symbols = []
-        positions = []
-        for child in atom_array:
-            symbol = child.attrib["elementType"]
-            if symbol == "Du":
-                symbol = "X"
-            symbols.append(symbol)
-            positions.append([float(child.attrib[_]) for _ in ["x3", "y3", "z3"]])
-        if not self.is_angstrom:
-            positions = np.array(positions) / Angstrom
-        return Atoms(symbols=symbols, positions=positions)
 
     def parse_counterpoise(self, jobstep: ET.Element, command: str) -> float:
         """Parse the COUNTERPOISE jobstep.
@@ -167,6 +149,28 @@ class MolproXMLParser:
             dea *= -1.0
             deb *= -1.0
         return dea + deb
+
+
+def _parse_atom_array_tag(atom_array: ET.Element, *, is_angstrom: bool) -> Atoms:
+    """Parse "atomArray" tag.
+
+    Returns
+    -------
+    Atoms
+        ASE :class:`~ase.Atoms` object.
+
+    """
+    symbols = []
+    positions = []
+    for child in atom_array:
+        symbol = child.attrib["elementType"]
+        if symbol == "Du":
+            symbol = "X"
+        symbols.append(symbol)
+        positions.append([float(child.attrib[_]) for _ in ["x3", "y3", "z3"]])
+    if not is_angstrom:
+        positions = np.array(positions) / Angstrom
+    return Atoms(symbols=symbols, positions=positions)
 
 
 def _parse_forces(jobstep: ET.Element) -> np.ndarray:
