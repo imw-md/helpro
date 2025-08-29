@@ -214,6 +214,14 @@ def test_forces() -> None:
     np.testing.assert_allclose(gradients, gradients_ref)
 
 
+def test_optg() -> None:
+    """Test if the last image in `OPTG` is parsed correctly."""
+    fn = Path(__file__).parent / "data" / "optg" / "molpro.xml"
+    atoms = read_molpro_xml(fn)
+    ref = -1.13299026899653
+    assert atoms.calc.results["energy"] * eV / Hartree == pytest.approx(ref)
+
+
 def test_counterpoise() -> None:
     """Test if the counterpoise correction is parsed correctly."""
     fn = Path(__file__).parent / "data" / "counterpoise" / "molpro.xml"

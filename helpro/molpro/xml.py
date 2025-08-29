@@ -16,157 +16,174 @@ namespaces = {
 }
 
 
-class MolproXMLParser:
-    """Parser of `molpro.xml`."""
+def _parse_platform(platform: ET.Element) -> dict[str, int]:
+    """Parse "platform" element.
 
-    def __init__(self) -> None:
-        """Initialize."""
-        self.platform = {
-            "major": -1,
-            "minor": -1,
-            "processes": -1,
-            "nodes": -1,
-            "openmp": -1,
-        }
+    Returns
+    -------
+    dict[str, int]
+        Dictionary of the platform information.
 
-    @property
-    def is_angstrom(self) -> bool:
-        """Return whether the geometry is given in Ångstrom."""
-        return self._is_angstrom
+    """
+    version = platform.find("version", namespaces)
+    parallel = platform.find("parallel", namespaces)
+    return {
+        "major": int(version.attrib["major"]),
+        "minor": int(version.attrib["minor"]),
+        "processes": int(parallel.attrib["processes"]),
+        "nodes": int(parallel.attrib["nodes"]),
+        "openmp": int(parallel.attrib["openmp"]),
+    }
 
-    @is_angstrom.setter
-    def is_angstrom(self, is_angstrom: bool) -> None:
-        self._is_angstrom = is_angstrom
 
-    def parse_platform(self, platform: ET.Element) -> dict:
-        """Parse "platform" element."""
-        version = platform.find("version", namespaces)
-        parallel = platform.find("parallel", namespaces)
-        self.platform = {
-            "major": int(version.attrib["major"]),
-            "minor": int(version.attrib["minor"]),
-            "processes": int(parallel.attrib["processes"]),
-            "nodes": int(parallel.attrib["nodes"]),
-            "openmp": int(parallel.attrib["openmp"]),
-        }
+def _parse_input_tag(job: ET.Element) -> bool:
+    """Parse "input" tag.
 
-    def parse_energy(
-        self,
-        jobstep: ET.Element,
-        command: str,
-    ) -> tuple[Atoms | None, dict[str, float], dict[str, float]]:
-        """Parse energy.
+    Returns
+    -------
+    bool
+        :py:`True` if the positions are in angstrom.
 
-        Returns
-        -------
-        atoms, parameters, results
+    """
+    is_angstrom = False
+    input_tag = job.find("input", namespaces)
+    for child in input_tag:
+        if child.text is not None and child.text.upper() == "ANGSTROM":
+            is_angstrom = True
+    return is_angstrom
 
-        """
-        results = {}
-        command = jobstep.attrib["command"]
 
-        child = jobstep.find("cml:molecule", namespaces)
-        if child is not None:
-            atoms = self.parse_atom_array_tag(child.find("cml:atomArray", namespaces))
-        else:
-            atoms = None
+def _parse_counterpoise(
+    jobstep: ET.Element,
+    command: str,
+    *,
+    is_angstrom: bool,
+    platform: dict[str, int],
+) -> float:
+    """Parse the COUNTERPOISE jobstep.
 
-        energy_parser = get_energy_parsers()[command](namespaces)
-        results = energy_parser.fetch(jobstep)
-        for child in jobstep.findall("property", namespaces):
-            if child.attrib["name"] == "EREL":
-                keyr = "relativistic_correction"
-                results[keyr] = float(child.attrib["value"].split()[-1])
-        results = {k: v * (Hartree / eV) for k, v in results.items()}
-        if "energy" in results:
-            results["free_energy"] = results["energy"]
-        parameters = {"command": command}
+    The COUNTERPOISE jobstep consists of four sets of subjobsteps (for a dimer).
 
-        if len(jobstep.findall("error", namespaces)) != 0:
-            for child in jobstep.findall("error", namespaces):
-                warnings.warn(child.attrib.get("message", ""), stacklevel=1)
-                if child.attrib.get("type", "") == "Warning":
-                    results = {}
+    The order of the monomer calculations depends on the Molpro version.
 
-        return atoms, parameters, results
+    In 2021.3:
 
-    def parse_atom_array_tag(self, atom_array: ET.Element) -> Atoms:
-        """Parse "atomArray" tag.
+    - 1st monomer without ghost atoms
+    - 2nd monomer without ghost atoms
+    - 1st monomer with ghost atoms
+    - 2nd monomer with ghost atoms
 
-        Returns
-        -------
-        Atoms
-            ASE :class:`~ase.Atoms` object.
+    In 2024.1:
 
-        """
-        symbols = []
-        positions = []
-        for child in atom_array:
-            symbol = child.attrib["elementType"]
-            if symbol == "Du":
-                symbol = "X"
-            symbols.append(symbol)
-            positions.append([float(child.attrib[_]) for _ in ["x3", "y3", "z3"]])
-        if not self.is_angstrom:
-            positions = np.array(positions) / Angstrom
-        return Atoms(symbols=symbols, positions=positions)
+    - 1st monomer with ghost atoms
+    - 2nd monomer with ghost atoms
+    - 1st monomer without ghost atoms
+    - 2nd monomer without ghost atoms
 
-    def parse_counterpoise(self, jobstep: ET.Element, command: str) -> float:
-        """Parse the COUNTERPOISE jobstep.
+    Returns
+    -------
+    float
+        Counterpoise correction.
 
-        The COUNTERPOISE jobstep consists of four sets of subjobsteps (for a dimer).
+    Raises
+    ------
+    RuntimeError
+        If the number of monomers is not four.
 
-        The order of the monomer calculations depends on the Molpro version.
+    """
+    subjobsteps = jobstep.findall("jobstep", namespaces)
+    subjobsteps = [_ for _ in subjobsteps if _.attrib["command"] == command]
 
-        In 2021.3:
+    # monomer
+    if len(subjobsteps) == 0:
+        return 0.0
 
-        - 1st monomer without ghost atoms
-        - 2nd monomer without ghost atoms
-        - 1st monomer with ghost atoms
-        - 2nd monomer with ghost atoms
+    # check number of monomers
+    if len(subjobsteps) != 4:
+        raise RuntimeError
 
-        In 2024.1:
+    list_results = [
+        _parse_energy(_, command, is_angstrom=is_angstrom)[-1] for _ in subjobsteps
+    ]
 
-        - 1st monomer with ghost atoms
-        - 2nd monomer with ghost atoms
-        - 1st monomer without ghost atoms
-        - 2nd monomer without ghost atoms
+    for results in list_results:
+        if "energy" not in results:
+            warnings.warn("The energy is not available.", stacklevel=1)
+            return float("nan")
 
-        Returns
-        -------
-        float
-            Counterpoise correction.
+    dea = list_results[2]["energy"] - list_results[0]["energy"]
+    deb = list_results[3]["energy"] - list_results[1]["energy"]
+    if platform["major"] == 2021:
+        dea *= -1.0
+        deb *= -1.0
+    return dea + deb
 
-        Raises
-        ------
-        RuntimeError
-            If the number of monomers is not four.
 
-        """
-        subjobsteps = jobstep.findall("jobstep", namespaces)
-        subjobsteps = [_ for _ in subjobsteps if _.attrib["command"] == command]
+def _parse_energy(
+    jobstep: ET.Element,
+    command: str,
+    *,
+    is_angstrom: bool,
+) -> tuple[Atoms | None, dict[str, float], dict[str, float]]:
+    """Parse energy.
 
-        # monomer
-        if len(subjobsteps) == 0:
-            return 0.0
+    Returns
+    -------
+    atoms, parameters, results
 
-        # check number of monomers
-        if len(subjobsteps) != 4:
-            raise RuntimeError
+    """
+    results = {}
+    command = jobstep.attrib["command"]
 
-        list_results = [self.parse_energy(_, command)[-1] for _ in subjobsteps]
+    child = jobstep.find("cml:molecule", namespaces)
+    if child is not None:
+        atoms = _parse_atom_array_tag(
+            child.find("cml:atomArray", namespaces),
+            is_angstrom=is_angstrom,
+        )
+    else:
+        atoms = None
 
-        for results in list_results:
-            if "energy" not in results:
-                warnings.warn("The energy is not available.", stacklevel=1)
-                return float("nan")
+    energy_parser = get_energy_parsers()[command](namespaces)
+    results = energy_parser.fetch(jobstep)
+    for child in jobstep.findall("property", namespaces):
+        if child.attrib["name"] == "EREL":
+            keyr = "relativistic_correction"
+            results[keyr] = float(child.attrib["value"].split()[-1])
+    results = {k: v * (Hartree / eV) for k, v in results.items()}
+    if "energy" in results:
+        results["free_energy"] = results["energy"]
+    parameters = {"command": command}
 
-        dea = list_results[2]["energy"] - list_results[0]["energy"]
-        deb = list_results[3]["energy"] - list_results[1]["energy"]
-        if self.platform["major"] == 2021:
-            dea *= -1.0
-            deb *= -1.0
-        return dea + deb
+    if len(jobstep.findall("error", namespaces)) != 0:
+        for child in jobstep.findall("error", namespaces):
+            warnings.warn(child.attrib.get("message", ""), stacklevel=1)
+            if child.attrib.get("type", "") == "Warning":
+                results = {}
+
+    return atoms, parameters, results
+
+
+def _parse_atom_array_tag(atom_array: ET.Element, *, is_angstrom: bool) -> Atoms:
+    """Parse "atomArray" tag.
+
+    Returns
+    -------
+    Atoms
+        ASE :class:`~ase.Atoms` object.
+
+    """
+    symbols = []
+    positions = []
+    for child in atom_array:
+        symbol = child.attrib["elementType"]
+        if symbol == "Du":
+            symbol = "X"
+        symbols.append(symbol)
+        positions.append([float(child.attrib[_]) for _ in ["x3", "y3", "z3"]])
+    if not is_angstrom:
+        positions = np.array(positions) / Angstrom
+    return Atoms(symbols=symbols, positions=positions)
 
 
 def _parse_forces(jobstep: ET.Element) -> np.ndarray:
@@ -181,6 +198,71 @@ def _parse_forces(jobstep: ET.Element) -> np.ndarray:
     child = jobstep.find("gradient", namespaces)
     gradient = np.array(child.text.split(), dtype=float).reshape(-1, 3)
     return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
+
+
+def _parse_images(
+    element: ET.Element,
+    *,
+    is_angstrom: bool,
+    platform: dict[str, int],
+) -> list[Atoms]:
+    commands = []
+    info = {"cpu_time": 0.0, "real_time": 0.0}
+    atoms = Atoms()
+    images = []
+    for jobstep in element.findall("jobstep", namespaces):
+        command = jobstep.attrib["command"]
+        if command in get_energy_parsers():
+            _, parameters, energies = _parse_energy(
+                jobstep,
+                command,
+                is_angstrom=is_angstrom,
+            )
+            atoms = atoms.copy() if _ is None else _  # copy previous one if absent
+            calc = SinglePointCalculator(atoms)
+            calc.parameters = parameters
+            calc.results.update(energies)
+            atoms.calc = calc
+            images.append(atoms)
+        elif command == "COUNTERPOISE":
+            atoms = images[-1]
+            correction = _parse_counterpoise(
+                jobstep,
+                commands[-1],
+                is_angstrom=is_angstrom,
+                platform=platform,
+            )
+            atoms.calc.results["CP_correction"] = correction
+            atoms.calc.results["energy"] += correction
+        elif command == "OPTG":
+            images.extend(
+                _parse_images(
+                    jobstep,
+                    is_angstrom=is_angstrom,
+                    platform=platform,
+                ),
+            )
+        elif command == "FORCES":
+            atoms = images[-1]
+            atoms.calc.results["forces"] = _parse_forces(jobstep)
+        elif command == "FREQ":
+            atoms = images[-1]
+            atoms.calc.results.update(_parse_frequencies(jobstep))
+        commands.append(command)
+
+        subelement = jobstep.find("time", namespaces)
+        if subelement is not None:
+            _update_time(subelement, info)
+
+        subelement = jobstep.find("storage", namespaces)
+        if subelement is not None:
+            _update_storage(subelement, info)
+
+    info.update(platform)
+
+    images[-1].calc.results.update(info)
+
+    return images
 
 
 def _parse_frequencies(jobstep: ET.Element) -> dict[str, np.ndarray]:
@@ -222,59 +304,21 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
         ASE :class:`~ase.Atoms` object.
 
     """
-    parser = MolproXMLParser()
+    platform = {"major": -1, "minor": -1, "processes": -1, "nodes": -1, "openmp": -1}
 
     try:
-        tree = ET.parse(filename)
+        job = ET.parse(filename).getroot().find("job", namespaces)
     except ET.ParseError:
         atoms = Atoms()
         atoms.calc = SinglePointCalculator(atoms)
-        atoms.calc.results.update(parser.platform)
+        atoms.calc.results.update(platform)
         return atoms
 
-    job = tree.getroot().find("job", namespaces)
-    parser.is_angstrom = parse_input_tag(job)
+    is_angstrom = _parse_input_tag(job)
 
-    parser.parse_platform(job.find("platform", namespaces))
+    platform = _parse_platform(job.find("platform", namespaces))
 
-    commands = []
-    info = {"cpu_time": 0.0, "real_time": 0.0}
-    atoms = Atoms()
-    images = []
-    for jobstep in job.findall("jobstep", namespaces):
-        command = jobstep.attrib["command"]
-        if command in get_energy_parsers():
-            _, parameters, energies = parser.parse_energy(jobstep, command)
-            atoms = atoms.copy() if _ is None else _  # copy previous one if absent
-            calc = SinglePointCalculator(atoms)
-            calc.parameters = parameters
-            calc.results.update(energies)
-            atoms.calc = calc
-            images.append(atoms)
-        elif command == "COUNTERPOISE":
-            atoms = images[-1]
-            correction = parser.parse_counterpoise(jobstep, commands[-1])
-            atoms.calc.results["CP_correction"] = correction
-            atoms.calc.results["energy"] += correction
-        elif command == "FORCES":
-            atoms = images[-1]
-            atoms.calc.results["forces"] = _parse_forces(jobstep)
-        elif command == "FREQ":
-            atoms = images[-1]
-            atoms.calc.results.update(_parse_frequencies(jobstep))
-        commands.append(command)
-
-        element = jobstep.find("time", namespaces)
-        if element is not None:
-            _update_time(element, info)
-
-        element = jobstep.find("storage", namespaces)
-        if element is not None:
-            _update_storage(element, info)
-
-    info.update(parser.platform)
-
-    images[-1].calc.results.update(info)
+    images = _parse_images(job, is_angstrom=is_angstrom, platform=platform)
 
     if isinstance(index, str):
         index = string2index(index)
@@ -489,20 +533,3 @@ def get_energy_parsers() -> dict[str, EnergyParser]:
         ("KSRPA", "ACFD"): EnergyParserRPA,
     }
     return {_: v for k, v in d.items() for _ in k}
-
-
-def parse_input_tag(job: ET.Element) -> bool:
-    """Parse "input" tag.
-
-    Returns
-    -------
-    bool
-        :py:`True` if the positions are in angstrom.
-
-    """
-    is_angstrom = False
-    input_tag = job.find("input", namespaces)
-    for child in input_tag:
-        if child.text is not None and child.text.upper() == "ANGSTROM":
-            is_angstrom = True
-    return is_angstrom
