@@ -198,6 +198,71 @@ def _parse_forces(jobstep: ET.Element) -> np.ndarray:
     return gradient * -1.0 * (Hartree / eV) / (Bohr / Angstrom)
 
 
+def _parse_images(
+    element: ET.Element,
+    *,
+    is_angstrom: bool,
+    platform: dict[str, int],
+) -> list[Atoms]:
+    commands = []
+    info = {"cpu_time": 0.0, "real_time": 0.0}
+    atoms = Atoms()
+    images = []
+    for jobstep in element.findall("jobstep", namespaces):
+        command = jobstep.attrib["command"]
+        if command in get_energy_parsers():
+            _, parameters, energies = _parse_energy(
+                jobstep,
+                command,
+                is_angstrom=is_angstrom,
+            )
+            atoms = atoms.copy() if _ is None else _  # copy previous one if absent
+            calc = SinglePointCalculator(atoms)
+            calc.parameters = parameters
+            calc.results.update(energies)
+            atoms.calc = calc
+            images.append(atoms)
+        elif command == "COUNTERPOISE":
+            atoms = images[-1]
+            correction = _parse_counterpoise(
+                jobstep,
+                commands[-1],
+                is_angstrom=is_angstrom,
+                platform=platform,
+            )
+            atoms.calc.results["CP_correction"] = correction
+            atoms.calc.results["energy"] += correction
+        elif command == "OPTG":
+            images.extend(
+                _parse_images(
+                    jobstep,
+                    is_angstrom=is_angstrom,
+                    platform=platform,
+                ),
+            )
+        elif command == "FORCES":
+            atoms = images[-1]
+            atoms.calc.results["forces"] = _parse_forces(jobstep)
+        elif command == "FREQ":
+            atoms = images[-1]
+            atoms.calc.results.update(_parse_frequencies(jobstep))
+        commands.append(command)
+
+        subelement = jobstep.find("time", namespaces)
+        if subelement is not None:
+            _update_time(subelement, info)
+
+        subelement = jobstep.find("storage", namespaces)
+        if subelement is not None:
+            _update_storage(subelement, info)
+
+    info.update(platform)
+
+    images[-1].calc.results.update(info)
+
+    return images
+
+
 def _parse_frequencies(jobstep: ET.Element) -> dict[str, np.ndarray]:
     """Parse `vibrations`.
 
@@ -251,53 +316,11 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
 
     parser.parse_platform(job.find("platform", namespaces))
 
-    commands = []
-    info = {"cpu_time": 0.0, "real_time": 0.0}
-    atoms = Atoms()
-    images = []
-    for jobstep in job.findall("jobstep", namespaces):
-        command = jobstep.attrib["command"]
-        if command in get_energy_parsers():
-            _, parameters, energies = _parse_energy(
-                jobstep,
-                command,
-                is_angstrom=parser.is_angstrom,
-            )
-            atoms = atoms.copy() if _ is None else _  # copy previous one if absent
-            calc = SinglePointCalculator(atoms)
-            calc.parameters = parameters
-            calc.results.update(energies)
-            atoms.calc = calc
-            images.append(atoms)
-        elif command == "COUNTERPOISE":
-            atoms = images[-1]
-            correction = _parse_counterpoise(
-                jobstep,
-                commands[-1],
-                is_angstrom=parser.is_angstrom,
-                platform=parser.platform,
-            )
-            atoms.calc.results["CP_correction"] = correction
-            atoms.calc.results["energy"] += correction
-        elif command == "FORCES":
-            atoms = images[-1]
-            atoms.calc.results["forces"] = _parse_forces(jobstep)
-        elif command == "FREQ":
-            atoms = images[-1]
-            atoms.calc.results.update(_parse_frequencies(jobstep))
-        commands.append(command)
-
-        element = jobstep.find("time", namespaces)
-        if element is not None:
-            _update_time(element, info)
-
-        element = jobstep.find("storage", namespaces)
-        if element is not None:
-            _update_storage(element, info)
-
-    info.update(parser.platform)
-
-    images[-1].calc.results.update(info)
+    images = _parse_images(
+        job,
+        is_angstrom=parser.is_angstrom,
+        platform=parser.platform,
+    )
 
     if isinstance(index, str):
         index = string2index(index)
