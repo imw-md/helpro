@@ -29,15 +29,6 @@ class MolproXMLParser:
             "openmp": -1,
         }
 
-    @property
-    def is_angstrom(self) -> bool:
-        """Return whether the geometry is given in Ångstrom."""
-        return self._is_angstrom
-
-    @is_angstrom.setter
-    def is_angstrom(self, is_angstrom: bool) -> None:
-        self._is_angstrom = is_angstrom
-
     def parse_platform(self, platform: ET.Element) -> dict:
         """Parse "platform" element."""
         version = platform.find("version", namespaces)
@@ -49,6 +40,23 @@ class MolproXMLParser:
             "nodes": int(parallel.attrib["nodes"]),
             "openmp": int(parallel.attrib["openmp"]),
         }
+
+
+def _parse_input_tag(job: ET.Element) -> bool:
+    """Parse "input" tag.
+
+    Returns
+    -------
+    bool
+        :py:`True` if the positions are in angstrom.
+
+    """
+    is_angstrom = False
+    input_tag = job.find("input", namespaces)
+    for child in input_tag:
+        if child.text is not None and child.text.upper() == "ANGSTROM":
+            is_angstrom = True
+    return is_angstrom
 
 
 def _parse_counterpoise(
@@ -312,15 +320,11 @@ def read_molpro_xml(filename: str, index: int | slice | str = -1) -> Atoms:
         atoms.calc.results.update(parser.platform)
         return atoms
 
-    parser.is_angstrom = parse_input_tag(job)
+    is_angstrom = _parse_input_tag(job)
 
     parser.parse_platform(job.find("platform", namespaces))
 
-    images = _parse_images(
-        job,
-        is_angstrom=parser.is_angstrom,
-        platform=parser.platform,
-    )
+    images = _parse_images(job, is_angstrom=is_angstrom, platform=parser.platform)
 
     if isinstance(index, str):
         index = string2index(index)
@@ -535,20 +539,3 @@ def get_energy_parsers() -> dict[str, EnergyParser]:
         ("KSRPA", "ACFD"): EnergyParserRPA,
     }
     return {_: v for k, v in d.items() for _ in k}
-
-
-def parse_input_tag(job: ET.Element) -> bool:
-    """Parse "input" tag.
-
-    Returns
-    -------
-    bool
-        :py:`True` if the positions are in angstrom.
-
-    """
-    is_angstrom = False
-    input_tag = job.find("input", namespaces)
-    for child in input_tag:
-        if child.text is not None and child.text.upper() == "ANGSTROM":
-            is_angstrom = True
-    return is_angstrom
