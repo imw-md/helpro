@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True, kw_only=True)
-class MethodProperties:
+class Method:
     """Method properties."""
 
     name: str
@@ -20,12 +20,12 @@ class MethodProperties:
     ref: str = ""  # reference method name for post-HF and post-KS
 
 
-def _make_methods_hf() -> dict[str, MethodProperties]:
+def _make_methods_hf() -> dict[str, Method]:
     """Make HF methods.
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, Method]
         HF methods.
 
     """
@@ -35,27 +35,27 @@ def _make_methods_hf() -> dict[str, MethodProperties]:
 
     names = names_basic
     kwargs = {"is_hf": True}
-    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+    methods.update({k: Method(name=k, **kwargs) for k in names})
 
     names = tuple(f"R{_}" for _ in names_basic)
     kwargs = {"is_hf": True}
-    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+    methods.update({k: Method(name=k, **kwargs) for k in names})
 
     names = tuple(f"U{_}" for _ in names_basic)
     kwargs = {"is_hf": True, "is_spin_u": True}
-    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+    methods.update({k: Method(name=k, **kwargs) for k in names})
 
     methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
 
     return methods
 
 
-def _make_methods_post_hf() -> dict[str, MethodProperties]:
+def _make_methods_post_hf() -> dict[str, Method]:
     """Make post-HF methods.
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, Method]
         Post-HF methods.
 
     """
@@ -67,35 +67,35 @@ def _make_methods_post_hf() -> dict[str, MethodProperties]:
         "CCSD_T",
     )
     kwargs = {"ref": "HF"}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_ps})
+    methods.update({_: Method(name=_, **kwargs) for _ in names_ps})
 
     names = tuple(f"DF-{_}" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-{_}-F12" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_pno": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}-F12" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True, "is_pno": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     return methods
 
 
-def _make_methods_dft() -> dict[str, MethodProperties]:
+def _make_methods_dft() -> dict[str, Method]:
     """Make DFT methods.
 
     https://www.molpro.net/manual/doku.php?id=the_density_functional_program
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, Method]
         DFT methods.
 
     Notes
@@ -115,34 +115,34 @@ def _make_methods_dft() -> dict[str, MethodProperties]:
                 continue
             name = f"KS_{xc}{dispersion}"
             kwargs = {"is_ks": True, "xc": xc}
-            methods[name] = MethodProperties(name=name, **kwargs)
+            methods[name] = Method(name=name, **kwargs)
 
             name = f"RKS_{xc}{dispersion}"
-            methods[name] = MethodProperties(name=name, **kwargs)
+            methods[name] = Method(name=name, **kwargs)
 
             name = f"UKS_{xc}{dispersion}"
             kwargs.update(is_spin_u=True)
-            methods[name] = MethodProperties(name=name, **kwargs)
+            methods[name] = Method(name=name, **kwargs)
 
             kwargs.update(is_df=True, is_spin_u=False)
 
             name = f"DF-KS_{xc}{dispersion}"
-            methods[name] = MethodProperties(name=name, **kwargs)
+            methods[name] = Method(name=name, **kwargs)
 
             name = f"DF-RKS_{xc}{dispersion}"
-            methods[name] = MethodProperties(name=name, **kwargs)
+            methods[name] = Method(name=name, **kwargs)
 
     return methods
 
 
-def _make_methods_rpa() -> dict[str, MethodProperties]:
+def _make_methods_rpa() -> dict[str, Method]:
     """Make RPA methods.
 
     https://www.molpro.net/manual/doku.php?id=kohn-sham_random-phase_approximation
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, Method]
         RPA methods.
 
     Notes
@@ -164,26 +164,26 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
         )
         ref = f"KS_{xc}" if xc else "HF"
         kwargs = {"ref": ref, "is_ksrpa": True, "xc": xc}
-        d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"{ref}_{_}": Method(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URPAX2",)
         kwargs.update(ref=f"U{ref}", is_spin_u=True)
-        d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": Method(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         # ACFD
         names = ("RIRPA",)
         kwargs = {"ref": ref, "is_acfd": True, "xc": xc}
-        d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"{ref}_{_}": Method(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URIRPA",)
         kwargs.update(is_spin_u=True)
-        d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": Method(name=_, **kwargs) for _ in names}
         methods.update(d)
 
-    def _replace_df(v: MethodProperties) -> MethodProperties:
+    def _replace_df(v: Method) -> Method:
         return replace(v, ref=f"DF-{v.ref}", is_df=True)
 
     methods.update({f"DF-{k}": _replace_df(v) for k, v in methods.items()})
@@ -191,7 +191,7 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
     return methods
 
 
-def _get_methods_all() -> dict[str, MethodProperties]:
+def _get_methods_all() -> dict[str, Method]:
     """Get methods."""
     return (
         _make_methods_hf()
