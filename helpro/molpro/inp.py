@@ -324,7 +324,7 @@ class MolproInputWriter:
     charge: int | None = None
     multiplicity: int | None = None
     options: list[str] | str | None = None
-    template: tuple[str] = field(default_factory=_make_default_template)
+    template: tuple[str] | None = field(default_factory=_make_default_template)
 
     def __post_init__(self) -> None:
         """Post-process attributes."""
@@ -337,6 +337,8 @@ class MolproInputWriter:
                 path = self.template
             with path.open(encoding="utf-8") as fd:
                 self.template = tuple(fd.readlines())
+        elif self.template is None:
+            self.template = _make_default_template()
 
     def write(self, fname: str | None = None) -> None:
         """Write MOLPRO input file.
