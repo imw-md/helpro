@@ -8,16 +8,25 @@ class Method:
     """Method properties."""
 
     name: str
-    is_acfd: bool = False
     is_df: bool = False
     is_f12: bool = False
     is_hf: bool = False  # whether this is the HF method
-    is_ks: bool = False
-    is_ksrpa: bool = False
     is_pno: bool = False
     is_spin_u: bool = False
     xc: str = ""
     ref: str = ""  # reference method name for post-HF and post-KS
+
+
+@dataclass(frozen=True, kw_only=True)
+class DFTMethod(Method):
+    """DFT Method."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class RPAMethod(Method):
+    """RPA Method."""
+
+    is_acfd: bool = False
 
 
 def _make_methods_hf() -> dict[str, Method]:
@@ -88,14 +97,14 @@ def _make_methods_post_hf() -> dict[str, Method]:
     return methods
 
 
-def _make_methods_dft() -> dict[str, Method]:
+def _make_methods_dft() -> dict[str, DFTMethod]:
     """Make DFT methods.
 
     https://www.molpro.net/manual/doku.php?id=the_density_functional_program
 
     Returns
     -------
-    dict[str, Method]
+    dict[str, DFTMethod]
         DFT methods.
 
     Notes
@@ -114,35 +123,35 @@ def _make_methods_dft() -> dict[str, Method]:
             if xc == "LDA" and dispersion:
                 continue
             name = f"KS_{xc}{dispersion}"
-            kwargs = {"is_ks": True, "xc": xc}
-            methods[name] = Method(name=name, **kwargs)
+            kwargs = {"xc": xc}
+            methods[name] = DFTMethod(name=name, **kwargs)
 
             name = f"RKS_{xc}{dispersion}"
-            methods[name] = Method(name=name, **kwargs)
+            methods[name] = DFTMethod(name=name, **kwargs)
 
             name = f"UKS_{xc}{dispersion}"
             kwargs.update(is_spin_u=True)
-            methods[name] = Method(name=name, **kwargs)
+            methods[name] = DFTMethod(name=name, **kwargs)
 
             kwargs.update(is_df=True, is_spin_u=False)
 
             name = f"DF-KS_{xc}{dispersion}"
-            methods[name] = Method(name=name, **kwargs)
+            methods[name] = DFTMethod(name=name, **kwargs)
 
             name = f"DF-RKS_{xc}{dispersion}"
-            methods[name] = Method(name=name, **kwargs)
+            methods[name] = DFTMethod(name=name, **kwargs)
 
     return methods
 
 
-def _make_methods_rpa() -> dict[str, Method]:
+def _make_methods_rpa() -> dict[str, RPAMethod]:
     """Make RPA methods.
 
     https://www.molpro.net/manual/doku.php?id=kohn-sham_random-phase_approximation
 
     Returns
     -------
-    dict[str, Method]
+    dict[str, RPAMethod]
         RPA methods.
 
     Notes
@@ -163,27 +172,27 @@ def _make_methods_rpa() -> dict[str, Method]:
             # "ACFDT",
         )
         ref = f"KS_{xc}" if xc else "HF"
-        kwargs = {"ref": ref, "is_ksrpa": True, "xc": xc}
-        d = {f"{ref}_{_}": Method(name=_, **kwargs) for _ in names}
+        kwargs = {"ref": ref, "xc": xc}
+        d = {f"{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URPAX2",)
         kwargs.update(ref=f"U{ref}", is_spin_u=True)
-        d = {f"U{ref}_{_}": Method(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         # ACFD
         names = ("RIRPA",)
         kwargs = {"ref": ref, "is_acfd": True, "xc": xc}
-        d = {f"{ref}_{_}": Method(name=_, **kwargs) for _ in names}
+        d = {f"{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URIRPA",)
         kwargs.update(is_spin_u=True)
-        d = {f"U{ref}_{_}": Method(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
-    def _replace_df(v: Method) -> Method:
+    def _replace_df(v: RPAMethod) -> RPAMethod:
         return replace(v, ref=f"DF-{v.ref}", is_df=True)
 
     methods.update({f"DF-{k}": _replace_df(v) for k, v in methods.items()})

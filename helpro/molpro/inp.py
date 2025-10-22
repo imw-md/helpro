@@ -5,7 +5,7 @@ from dataclasses import KW_ONLY, dataclass, field
 from pathlib import Path
 
 from .bases import bases_all
-from .methods import methods_all
+from .methods import DFTMethod, RPAMethod, methods_all
 
 
 def make_wf_directive(charge: int | None, multiplicity: int | None) -> str:
@@ -70,9 +70,14 @@ def parse_rpa_method(method: str, *, core: str, wf_directive: str) -> str:
     ------
     RuntimeError
         If `core=='active'` is specified for AFCD.
+    TypeError
+        If the method is not `RPAMethod`.
 
     """
     props = methods_all[method]
+    if not isinstance(props, RPAMethod):
+        raise TypeError(method)
+
     lines = []
     if props.xc:
         lines.append(parse_dft_method(props.ref, wf_directive))
@@ -80,16 +85,14 @@ def parse_rpa_method(method: str, *, core: str, wf_directive: str) -> str:
         lines.append(f"{{{props.ref}{wf_directive}}}")
     rpa = method.split("_")[-1]
     orb = "2200.2" if props.is_spin_u else "2100.2"
-    if props.is_ksrpa:
-        str_core = ",CORE=0" if core == "active" else ""
-        lines.append(f"{{KSRPA;{rpa},ORB={orb}{str_core}}}")
-    elif props.is_acfd:
+    if props.is_acfd:
         if core == "active":
             msg = "The active-core calculation is not available for AFCD."
             raise RuntimeError(msg)
         lines.append(f"{{ACFD;{rpa},ORB={orb}}}")
     else:
-        raise RuntimeError(method)
+        str_core = ",CORE=0" if core == "active" else ""
+        lines.append(f"{{KSRPA;{rpa},ORB={orb}{str_core}}}")
     return "\n".join(lines)
 
 
@@ -150,10 +153,10 @@ def make_method_lines(
     str_core = ";CORE" if core == "active" and not props.is_hf else ""
     wf_directive = make_wf_directive(charge, multiplicity)
     lines = []
-    if props.is_ks:
+    if isinstance(props, DFTMethod):
         lines.append(parse_dft_method(method, wf_directive=wf_directive))
         return "\n".join(lines)
-    if props.is_ksrpa or props.is_acfd:
+    if isinstance(props, RPAMethod):
         lines.append(parse_rpa_method(method, core=core, wf_directive=wf_directive))
         return "\n".join(lines)
     if props.is_hf:
@@ -199,25 +202,25 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
     """
     basis = parse_heavy_basis(basis)
     props = methods_all[method]
-    if props.is_ksrpa:
-        lines = (
-            r"BASIS={",
-            r"SET,ORBITAL",
-            f"DEFAULT={basis}",
-            r"SET,MP2FIT",
-            f"DEFAULT={basis}",
-            r"}",
-        )
-        return "\n".join(lines)
-    if props.is_acfd:
-        lines = (
-            r"BASIS={",
-            r"SET,ORBITAL",
-            f"DEFAULT={basis}",
-            r"SET,RI,CONTEXT=MP2FIT",
-            f"DEFAULT={basis}",
-            r"}",
-        )
+    if isinstance(props, RPAMethod):
+        if props.is_acfd:
+            lines = (
+                r"BASIS={",
+                r"SET,ORBITAL",
+                f"DEFAULT={basis}",
+                r"SET,RI,CONTEXT=MP2FIT",
+                f"DEFAULT={basis}",
+                r"}",
+            )
+        else:
+            lines = (
+                r"BASIS={",
+                r"SET,ORBITAL",
+                f"DEFAULT={basis}",
+                r"SET,MP2FIT",
+                f"DEFAULT={basis}",
+                r"}",
+            )
         return "\n".join(lines)
     return f"BASIS={basis}"
 
