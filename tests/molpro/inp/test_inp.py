@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from helpro.molpro.inp import F12MethodOptions, MolproInputWriter
+from helpro.molpro.methods import DFTMethod
 
 
 def get_parameters_basic() -> list[list[str]]:
@@ -33,6 +34,27 @@ def test_basic(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
         sref = f.read()
 
     p = tmp_path / "molpro.inp"
+    miw = MolproInputWriter(method=method, basis=basis, core=core)
+    miw.write(fname=p)
+    with p.open("r", encoding="utf-8") as f:
+        s = f.read()
+
+    assert s == sref
+
+
+@pytest.mark.parametrize("xc", ["PBESOL", "R2SCAN"])
+def test_xc(xc: str, tmp_path: Path) -> None:
+    """Test user-specified exchange-correlation functionals."""
+    name = "DF-KS"
+    basis = "cc-pVDZ"
+    core = "frozen"
+    p = Path(__file__).parent / "data" / "xc"
+    p = p / f"{name}_{xc}" / basis / core / "molpro.inp"
+    with p.open("r", encoding="utf-8") as f:
+        sref = f.read()
+
+    p = tmp_path / "molpro.inp"
+    method = DFTMethod(name=name, xc=xc)
     miw = MolproInputWriter(method=method, basis=basis, core=core)
     miw.write(fname=p)
     with p.open("r", encoding="utf-8") as f:

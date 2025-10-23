@@ -2,30 +2,44 @@
 
 from dataclasses import dataclass, replace
 
+names_dft = ("KS", "RKS", "UKS", "DF-KS", "DF-RKS")
+dispersions = ("", "D2", "D3", "D3_BJ", "D4")
+
 
 @dataclass(frozen=True, kw_only=True)
-class MethodProperties:
+class Method:
     """Method properties."""
 
     name: str
-    is_acfd: bool = False
     is_df: bool = False
     is_f12: bool = False
     is_hf: bool = False  # whether this is the HF method
-    is_ks: bool = False
-    is_ksrpa: bool = False
     is_pno: bool = False
     is_spin_u: bool = False
     xc: str = ""
     ref: str = ""  # reference method name for post-HF and post-KS
 
 
-def _make_methods_hf() -> dict[str, MethodProperties]:
+@dataclass(frozen=True, kw_only=True)
+class DFTMethod(Method):
+    """DFT Method."""
+
+    dispersion: str = ""
+
+
+@dataclass(frozen=True, kw_only=True)
+class RPAMethod(Method):
+    """RPA Method."""
+
+    is_acfd: bool = False
+
+
+def _make_methods_hf() -> dict[str, Method]:
     """Make HF methods.
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, Method]
         HF methods.
 
     """
@@ -35,27 +49,29 @@ def _make_methods_hf() -> dict[str, MethodProperties]:
 
     names = names_basic
     kwargs = {"is_hf": True}
-    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+    methods.update({k: Method(name=k, **kwargs) for k in names})
 
     names = tuple(f"R{_}" for _ in names_basic)
     kwargs = {"is_hf": True}
-    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+    methods.update({k: Method(name=k, **kwargs) for k in names})
 
     names = tuple(f"U{_}" for _ in names_basic)
     kwargs = {"is_hf": True, "is_spin_u": True}
-    methods.update({k: MethodProperties(name=k, **kwargs) for k in names})
+    methods.update({k: Method(name=k, **kwargs) for k in names})
 
-    methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
+    methods_df = {}
+    for k, v in methods.items():
+        methods_df[f"DF-{k}"] = replace(v, name=f"DF-{k}", is_df=True)
 
-    return methods
+    return methods | methods_df
 
 
-def _make_methods_post_hf() -> dict[str, MethodProperties]:
+def _make_methods_post_hf() -> dict[str, Method]:
     """Make post-HF methods.
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, Method]
         Post-HF methods.
 
     """
@@ -67,35 +83,54 @@ def _make_methods_post_hf() -> dict[str, MethodProperties]:
         "CCSD_T",
     )
     kwargs = {"ref": "HF"}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names_ps})
+    methods.update({_: Method(name=_, **kwargs) for _ in names_ps})
 
     names = tuple(f"DF-{_}" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-{_}-F12" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_pno": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}-F12" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True, "is_pno": True}
-    methods.update({_: MethodProperties(name=_, **kwargs) for _ in names})
+    methods.update({_: Method(name=_, **kwargs) for _ in names})
 
     return methods
 
 
-def _make_methods_dft() -> dict[str, MethodProperties]:
+def make_method_dft(name: str, xc: str, dispersion: str) -> DFTMethod:
+    """Make `DFTMethod`.
+
+    Returns
+    -------
+    DFTMethod
+
+    """
+    is_spin_u = name.startswith("UKS")
+    is_df = name.startswith("DF-")
+    return DFTMethod(
+        name=name,
+        xc=xc,
+        dispersion=dispersion,
+        is_df=is_df,
+        is_spin_u=is_spin_u,
+    )
+
+
+def _make_methods_dft() -> dict[str, DFTMethod]:
     """Make DFT methods.
 
     https://www.molpro.net/manual/doku.php?id=the_density_functional_program
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, DFTMethod]
         DFT methods.
 
     Notes
@@ -103,46 +138,34 @@ def _make_methods_dft() -> dict[str, MethodProperties]:
     - `DF` is not available for `UKS`; only `CF` is availble.
     - It makes less sense to add the dispersion correction to LDA
       because LDA already has an overbinding nature.
+    - Since 2024.1.0, Many alias names for libxc functionals have been added.
+
+    https://www.molpro.net/manual/doku.php?id=recent_changes#dft_functional_alias_names
 
     """
     methods = {}
 
     xcs = ("LDA", "PBE")
-    dispersions = ("", "-D2", "-D3", "-D3_BJ", "-D4")
     for xc in xcs:
         for dispersion in dispersions:
+            sep = "-" if dispersion else ""
             if xc == "LDA" and dispersion:
                 continue
-            name = f"KS_{xc}{dispersion}"
-            kwargs = {"is_ks": True, "xc": xc}
-            methods[name] = MethodProperties(name=name, **kwargs)
-
-            name = f"RKS_{xc}{dispersion}"
-            methods[name] = MethodProperties(name=name, **kwargs)
-
-            name = f"UKS_{xc}{dispersion}"
-            kwargs.update(is_spin_u=True)
-            methods[name] = MethodProperties(name=name, **kwargs)
-
-            kwargs.update(is_df=True, is_spin_u=False)
-
-            name = f"DF-KS_{xc}{dispersion}"
-            methods[name] = MethodProperties(name=name, **kwargs)
-
-            name = f"DF-RKS_{xc}{dispersion}"
-            methods[name] = MethodProperties(name=name, **kwargs)
+            for name in names_dft:
+                k = f"{name}_{xc}{sep}{dispersion}"
+                methods[k] = make_method_dft(name=name, xc=xc, dispersion=dispersion)
 
     return methods
 
 
-def _make_methods_rpa() -> dict[str, MethodProperties]:
+def _make_methods_rpa() -> dict[str, RPAMethod]:
     """Make RPA methods.
 
     https://www.molpro.net/manual/doku.php?id=kohn-sham_random-phase_approximation
 
     Returns
     -------
-    dict[str, MethodProperties]
+    dict[str, RPAMethod]
         RPA methods.
 
     Notes
@@ -163,27 +186,27 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
             # "ACFDT",
         )
         ref = f"KS_{xc}" if xc else "HF"
-        kwargs = {"ref": ref, "is_ksrpa": True, "xc": xc}
-        d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        kwargs = {"ref": ref, "xc": xc}
+        d = {f"{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URPAX2",)
         kwargs.update(ref=f"U{ref}", is_spin_u=True)
-        d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         # ACFD
         names = ("RIRPA",)
         kwargs = {"ref": ref, "is_acfd": True, "xc": xc}
-        d = {f"{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
         names = ("URIRPA",)
         kwargs.update(is_spin_u=True)
-        d = {f"U{ref}_{_}": MethodProperties(name=_, **kwargs) for _ in names}
+        d = {f"U{ref}_{_}": RPAMethod(name=_, **kwargs) for _ in names}
         methods.update(d)
 
-    def _replace_df(v: MethodProperties) -> MethodProperties:
+    def _replace_df(v: RPAMethod) -> RPAMethod:
         return replace(v, ref=f"DF-{v.ref}", is_df=True)
 
     methods.update({f"DF-{k}": _replace_df(v) for k, v in methods.items()})
@@ -191,7 +214,7 @@ def _make_methods_rpa() -> dict[str, MethodProperties]:
     return methods
 
 
-def _get_methods_all() -> dict[str, MethodProperties]:
+def _get_methods_all() -> dict[str, Method]:
     """Get methods."""
     return (
         _make_methods_hf()
