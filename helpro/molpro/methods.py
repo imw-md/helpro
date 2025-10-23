@@ -25,6 +25,7 @@ class DFTMethod(Method):
     """DFT Method."""
 
     dispersion: str = ""
+    gridthr: float | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -104,7 +105,12 @@ def _make_methods_post_hf() -> dict[str, Method]:
     return methods
 
 
-def make_method_dft(name: str, xc: str, dispersion: str) -> DFTMethod:
+def make_method_dft(
+    name: str,
+    xc: str,
+    dispersion: str,
+    gridthr: float | None = None,
+) -> DFTMethod:
     """Make `DFTMethod`.
 
     Returns
@@ -120,6 +126,7 @@ def make_method_dft(name: str, xc: str, dispersion: str) -> DFTMethod:
         dispersion=dispersion,
         is_df=is_df,
         is_spin_u=is_spin_u,
+        gridthr=gridthr,
     )
 
 

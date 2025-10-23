@@ -68,8 +68,9 @@ def parse_dft_method(method: DFTMethod, wf_directive: str = "") -> str:
     else:
         raise RuntimeError(method)
     xc = method.xc
+    option = f",GRIDTHR={method.gridthr:G}" if method.gridthr else ""
     disp_directive = f";DISP,{dispersion}" if is_dispersion else ""
-    return f"{{{ks},{xc}{disp_directive}{wf_directive}}}"
+    return f"{{{ks},{xc}{option}{disp_directive}{wf_directive}}}"
 
 
 def parse_rpa_method(method: RPAMethod, *, core: str, wf_directive: str) -> str:
@@ -418,6 +419,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--method", default="HF")
     parser.add_argument("--xc", default="LDA")
     parser.add_argument("--dispersion", default="", choices=dispersions)
+    parser.add_argument("--gridthr", type=float)
     parser.add_argument("--basis", default="cc-pVDZ")
     parser.add_argument("--core", default="frozen", choices=("frozen", "active"))
     parser.add_argument("--cabs-singles", type=int)
@@ -440,6 +442,7 @@ def run(args: argparse.Namespace) -> None:
             name=args.method,
             xc=args.xc,
             dispersion=args.dispersion,
+            gridthr=args.gridthr,
         )
     else:
         method = args.method
