@@ -54,9 +54,11 @@ def _make_methods_hf() -> dict[str, Method]:
     kwargs = {"is_hf": True, "is_spin_u": True}
     methods.update({k: Method(name=k, **kwargs) for k in names})
 
-    methods.update({f"DF-{k}": replace(v, is_df=True) for k, v in methods.items()})
+    methods_df = {}
+    for k, v in methods.items():
+        methods_df[f"DF-{k}"] = replace(v, name=f"DF-{k}", is_df=True)
 
-    return methods
+    return methods | methods_df
 
 
 def _make_methods_post_hf() -> dict[str, Method]:
