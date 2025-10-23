@@ -3,6 +3,19 @@
 from dataclasses import dataclass, replace
 
 names_dft = ("KS", "RKS", "UKS", "DF-KS", "DF-RKS")
+xcs = (
+    "B3LYP",
+    "B97",
+    "LDA",
+    "PBE",
+    "PBE0",
+    "PW91",
+    "PBESOL",
+    "SCAN",
+    "R2SCAN",
+    "WB97",
+    "WB97X",
+)
 dispersions = ("", "D2", "D3", "D3_BJ", "D4")
 
 
@@ -152,7 +165,6 @@ def _make_methods_dft() -> dict[str, DFTMethod]:
     """
     methods = {}
 
-    xcs = ("LDA", "PBE")
     for xc in xcs:
         for dispersion in dispersions:
             sep = "-" if dispersion else ""
@@ -184,8 +196,7 @@ def _make_methods_rpa() -> dict[str, RPAMethod]:
     """
     methods = {}
 
-    xcs = ("", "LDA", "PBE")  # "" is for the HF method.
-    for xc in xcs:
+    for xc in "", *xcs:  # "" is for the HF method.
         # KSRPA
         names = (
             "DIRPA",
