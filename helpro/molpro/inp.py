@@ -316,7 +316,7 @@ class MolproInputWriter:
         Method.
     basis : str
         Basis set.
-    core : {"active", "frozen"}, default: "active"
+    core : {"active", "frozen"}, default: "frozen"
         Whether the core is active or frozen.
     method_options : F12MethodOptions
         F12MethodOptions.
@@ -334,7 +334,7 @@ class MolproInputWriter:
     method: str | Method
     basis: str
     _: KW_ONLY
-    core: str = "active"
+    core: str = "frozen"
     method_options: F12MethodOptions = field(default_factory=F12MethodOptions)
     cabs_singles: int | None = None
     core_singles: int | None = None
