@@ -21,16 +21,22 @@ dispersions = ("", "D2", "D3", "D3_BJ", "D4")
 
 @dataclass(frozen=True, kw_only=True)
 class Method:
-    """Method properties."""
+    """Quantum-chemistry method."""
 
     name: str
     is_df: bool = False
-    is_f12: bool = False
     is_hf: bool = False  # whether this is the HF method
-    is_pno: bool = False
     is_spin_u: bool = False
     xc: str = ""
     ref: str = ""  # reference method name for post-HF and post-KS
+
+
+@dataclass(frozen=True, kw_only=True)
+class PostHFMethod(Method):
+    """Post-HF method."""
+
+    is_f12: bool = False
+    is_pno: bool = False
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -80,12 +86,12 @@ def _make_methods_hf() -> dict[str, Method]:
     return methods | methods_df
 
 
-def _make_methods_post_hf() -> dict[str, Method]:
+def _make_methods_post_hf() -> dict[str, PostHFMethod]:
     """Make post-HF methods.
 
     Returns
     -------
-    dict[str, Method]
+    dict[str, PostHFMethod]
         Post-HF methods.
 
     """
@@ -97,23 +103,23 @@ def _make_methods_post_hf() -> dict[str, Method]:
         "CCSD_T",
     )
     kwargs = {"ref": "HF"}
-    methods.update({_: Method(name=_, **kwargs) for _ in names_ps})
+    methods.update({_: PostHFMethod(name=_, **kwargs) for _ in names_ps})
 
     names = tuple(f"DF-{_}" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True}
-    methods.update({_: Method(name=_, **kwargs) for _ in names})
+    methods.update({_: PostHFMethod(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-{_}-F12" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True}
-    methods.update({_: Method(name=_, **kwargs) for _ in names})
+    methods.update({_: PostHFMethod(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_pno": True}
-    methods.update({_: Method(name=_, **kwargs) for _ in names})
+    methods.update({_: PostHFMethod(name=_, **kwargs) for _ in names})
 
     names = tuple(f"DF-PNO-L{_}-F12" for _ in names_ps)
     kwargs = {"ref": "DF-HF", "is_df": True, "is_f12": True, "is_pno": True}
-    methods.update({_: Method(name=_, **kwargs) for _ in names})
+    methods.update({_: PostHFMethod(name=_, **kwargs) for _ in names})
 
     return methods
 

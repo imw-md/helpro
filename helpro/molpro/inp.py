@@ -8,6 +8,7 @@ from .bases import bases_all
 from .methods import (
     DFTMethod,
     Method,
+    PostHFMethod,
     RPAMethod,
     dispersions,
     make_method_dft,
@@ -158,6 +159,11 @@ def make_method_lines(
     command : str
         Command.
 
+    Raises
+    ------
+    ValueError
+        If `method` cannot be parsed.
+
     """
     option = ""
     if options.cabs_singles is not None and not method.is_pno and method.is_f12:
@@ -177,15 +183,15 @@ def make_method_lines(
     if method.is_hf:
         lines.append(f"{{{method.name}{wf_directive}}}")
         return "\n".join(lines)
-
-    lines.append(f"{{{method.ref}{wf_directive}}}")
-    if method.is_pno and method.is_f12:
-        lines.append(f"{{DF-CABS{str_core}}}")
-    name = method.name.replace("CCSD_T", "CCSD(T)")
-    name = method.name.replace("DF-PNO", "PNO")
-    lines.append(f"{{{name}{option}{str_core}}}")
-
-    return "\n".join(lines)
+    if isinstance(method, PostHFMethod):
+        lines.append(f"{{{method.ref}{wf_directive}}}")
+        if method.is_pno and method.is_f12:
+            lines.append(f"{{DF-CABS{str_core}}}")
+        name = method.name.replace("CCSD_T", "CCSD(T)")
+        name = method.name.replace("DF-PNO", "PNO")
+        lines.append(f"{{{name}{option}{str_core}}}")
+        return "\n".join(lines)
+    raise ValueError(method)
 
 
 def parse_heavy_basis(basis: str) -> str:
