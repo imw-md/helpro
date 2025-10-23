@@ -5,7 +5,15 @@ from dataclasses import KW_ONLY, dataclass, field
 from pathlib import Path
 
 from .bases import bases_all
-from .methods import DFTMethod, RPAMethod, methods_all
+from .methods import (
+    DFTMethod,
+    Method,
+    RPAMethod,
+    dispersions,
+    make_method_dft,
+    methods_all,
+    names_dft,
+)
 
 
 def make_wf_directive(charge: int | None, multiplicity: int | None) -> str:
@@ -35,57 +43,65 @@ def make_wf_directive(charge: int | None, multiplicity: int | None) -> str:
     return wf
 
 
-def parse_dft_method(method: str, wf_directive: str = "") -> str:
+def parse_dft_method(method: DFTMethod, wf_directive: str = "") -> str:
     """Parse a DFT method.
 
     https://www.molpro.net/manual/doku.php?id=the_density_functional_program
 
     Returns
     -------
-    dft : str
+    dft : DFTMethod
         DFT command.
 
+    Raises
+    ------
+    RuntimeError
+        If `method` cannot be parsed.
+
     """
-    dispersion = method.split("-")[-1].replace("_BJ", ",BJ")
+    dispersion = method.dispersion.replace("_BJ", ",BJ")
     is_dispersion = dispersion in {"D2", "D3", "D3,BJ", "D4"}
-    ks, xc = method.split("_")[:2]
-    disp_directive = ""
-    if is_dispersion:
-        xc = xc.split("-")[0]
-        disp_directive = f";DISP,{dispersion}"
+    for name in names_dft:
+        if method.name.startswith(name):
+            ks = name
+            break
+    else:
+        raise RuntimeError(method)
+    xc = method.xc
+    disp_directive = f";DISP,{dispersion}" if is_dispersion else ""
     return f"{{{ks},{xc}{disp_directive}{wf_directive}}}"
 
 
-def parse_rpa_method(method: str, *, core: str, wf_directive: str) -> str:
+def parse_rpa_method(method: RPAMethod, *, core: str, wf_directive: str) -> str:
     """Parse an RPA method.
 
     https://www.molpro.net/manual/doku.php?id=kohn-sham_random-phase_approximation
 
     Returns
     -------
-    rpa : str
+    rpa : RPAMethod
         RPA command.
 
     Raises
     ------
     RuntimeError
         If `core=='active'` is specified for AFCD.
-    TypeError
-        If the method is not `RPAMethod`.
 
     """
-    props = methods_all[method]
-    if not isinstance(props, RPAMethod):
-        raise TypeError(method)
-
     lines = []
-    if props.xc:
-        lines.append(parse_dft_method(props.ref, wf_directive))
+    if method.xc:
+        method_dft = DFTMethod(
+            name=method.ref,
+            xc=method.xc,
+            is_df=method.is_df,
+            is_spin_u=method.is_spin_u,
+        )
+        lines.append(parse_dft_method(method_dft, wf_directive))
     else:
-        lines.append(f"{{{props.ref}{wf_directive}}}")
-    rpa = method.split("_")[-1]
-    orb = "2200.2" if props.is_spin_u else "2100.2"
-    if props.is_acfd:
+        lines.append(f"{{{method.ref}{wf_directive}}}")
+    rpa = method.name.split("_")[-1]
+    orb = "2200.2" if method.is_spin_u else "2100.2"
+    if method.is_acfd:
         if core == "active":
             msg = "The active-core calculation is not available for AFCD."
             raise RuntimeError(msg)
@@ -114,7 +130,7 @@ class F12MethodOptions:
 
 
 def make_method_lines(
-    method: str,
+    method: Method,
     *,
     core: str,
     options: F12MethodOptions,
@@ -125,7 +141,7 @@ def make_method_lines(
 
     Parameters
     ----------
-    method : str
+    method : Method
         Method.
     core : {'frozen', 'active'}
         Core-electron excitation.
@@ -142,33 +158,31 @@ def make_method_lines(
         Command.
 
     """
-    props = methods_all[method]
-
     option = ""
-    if options.cabs_singles is not None and not props.is_pno and props.is_f12:
+    if options.cabs_singles is not None and not method.is_pno and method.is_f12:
         option += f",CABS_SINGLES={options.cabs_singles}"
-    if options.core_singles is not None and not props.is_pno and props.is_f12:
+    if options.core_singles is not None and not method.is_pno and method.is_f12:
         option += f",CORE_SINGLES={options.core_singles}"
 
-    str_core = ";CORE" if core == "active" and not props.is_hf else ""
+    str_core = ";CORE" if core == "active" and not method.is_hf else ""
     wf_directive = make_wf_directive(charge, multiplicity)
     lines = []
-    if isinstance(props, DFTMethod):
+    if isinstance(method, DFTMethod):
         lines.append(parse_dft_method(method, wf_directive=wf_directive))
         return "\n".join(lines)
-    if isinstance(props, RPAMethod):
+    if isinstance(method, RPAMethod):
         lines.append(parse_rpa_method(method, core=core, wf_directive=wf_directive))
         return "\n".join(lines)
-    if props.is_hf:
-        lines.append(f"{{{method}{wf_directive}}}")
+    if method.is_hf:
+        lines.append(f"{{{method.name}{wf_directive}}}")
         return "\n".join(lines)
 
-    lines.append(f"{{{props.ref}{wf_directive}}}")
-    if props.is_pno and props.is_f12:
+    lines.append(f"{{{method.ref}{wf_directive}}}")
+    if method.is_pno and method.is_f12:
         lines.append(f"{{DF-CABS{str_core}}}")
-    method = method.replace("CCSD_T", "CCSD(T)")
-    method = method.replace("DF-PNO", "PNO")
-    lines.append(f"{{{method}{option}{str_core}}}")
+    name = method.name.replace("CCSD_T", "CCSD(T)")
+    name = method.name.replace("DF-PNO", "PNO")
+    lines.append(f"{{{name}{option}{str_core}}}")
 
     return "\n".join(lines)
 
@@ -189,7 +203,7 @@ def parse_heavy_basis(basis: str) -> str:
     return basis
 
 
-def make_basis_lines(method: str, basis: str) -> list[str]:
+def make_basis_lines(method: Method, basis: str) -> list[str]:
     """Make basis lines.
 
     https://www.molpro.net/manual/doku.php?id=basis_input
@@ -201,9 +215,9 @@ def make_basis_lines(method: str, basis: str) -> list[str]:
 
     """
     basis = parse_heavy_basis(basis)
-    props = methods_all[method]
-    if isinstance(props, RPAMethod):
-        if props.is_acfd:
+
+    if isinstance(method, RPAMethod):
+        if method.is_acfd:
             lines = (
                 r"BASIS={",
                 r"SET,ORBITAL",
@@ -297,7 +311,7 @@ class MolproInputWriter:
 
     Attributes
     ----------
-    method : str
+    method : str | Method
         Method.
     basis : str
         Basis set.
@@ -316,7 +330,7 @@ class MolproInputWriter:
 
     """
 
-    method: str
+    method: str | Method
     basis: str
     _: KW_ONLY
     core: str = "active"
@@ -360,18 +374,20 @@ class MolproInputWriter:
         if fname is None:
             fname = "molpro.inp"
 
-        if self.method not in methods_all:
-            raise ValueError(self.method)
+        if isinstance(self.method, Method):
+            method = self.method
+        else:
+            method = methods_all[self.method]
 
         if self.basis not in bases_all:
             raise ValueError(self.basis)
 
         self.options = validate_options(self.options)
 
-        basis_lines = make_basis_lines(self.method, self.basis)
+        basis_lines = make_basis_lines(method, self.basis)
 
         method_lines = make_method_lines(
-            self.method,
+            method,
             core=self.core,
             options=self.method_options,
             charge=self.charge,
@@ -400,6 +416,8 @@ class MolproInputWriter:
 def add_arguments(parser: argparse.ArgumentParser) -> None:
     """Add arguments."""
     parser.add_argument("--method", default="HF")
+    parser.add_argument("--xc", default="LDA")
+    parser.add_argument("--dispersion", default="", choices=dispersions)
     parser.add_argument("--basis", default="cc-pVDZ")
     parser.add_argument("--core", default="frozen", choices=("frozen", "active"))
     parser.add_argument("--cabs-singles", type=int)
@@ -416,8 +434,17 @@ def run(args: argparse.Namespace) -> None:
         cabs_singles=args.cabs_singles,
         core_singles=args.core_singles,
     )
+    if args.method in names_dft:
+        # register the user specified DFT method
+        method = make_method_dft(
+            name=args.method,
+            xc=args.xc,
+            dispersion=args.dispersion,
+        )
+    else:
+        method = args.method
     miw = MolproInputWriter(
-        method=args.method,
+        method=method,
         basis=args.basis,
         core=args.core,
         method_options=method_options,
