@@ -8,6 +8,7 @@ from .bases import bases_all
 from .methods import (
     DFTMethod,
     Method,
+    PostHFMethod,
     RPAMethod,
     dispersions,
     make_method_dft,
@@ -113,28 +114,30 @@ def parse_rpa_method(method: RPAMethod, *, core: str, wf_directive: str) -> str:
     return "\n".join(lines)
 
 
-@dataclass(slots=True)
-class F12MethodOptions:
-    """Method options.
+def parse_post_hf_method(method: PostHFMethod, *, core: str, wf_directive: str) -> str:
+    """Parse a post-HF method."""
+    option = ""
+    if method.cabs_singles is not None and not method.is_pno and method.is_f12:
+        option += f",CABS_SINGLES={method.cabs_singles}"
+    if method.core_singles is not None and not method.is_pno and method.is_f12:
+        option += f",CORE_SINGLES={method.core_singles}"
 
-    Attributes
-    ----------
-    cabs_singles : int, optional
-        CABS_SINGLES for non-PNO F12 methods.
-    core_singles : int, optional
-        CORE_SINGLES for non-PNO F12 methods.
+    str_core = ";CORE" if core == "active" and not method.is_hf else ""
 
-    """
-
-    cabs_singles: int | None = None
-    core_singles: int | None = None
+    lines = []
+    lines.append(f"{{{method.ref}{wf_directive}}}")
+    if method.is_pno and method.is_f12:
+        lines.append(f"{{DF-CABS{str_core}}}")
+    name = method.name.replace("CCSD_T", "CCSD(T)")
+    name = method.name.replace("DF-PNO", "PNO")
+    lines.append(f"{{{name}{option}{str_core}}}")
+    return "\n".join(lines)
 
 
 def make_method_lines(
     method: Method,
     *,
     core: str,
-    options: F12MethodOptions,
     charge: int | None = None,
     multiplicity: int | None = None,
 ) -> str:
@@ -146,8 +149,6 @@ def make_method_lines(
         Method.
     core : {'frozen', 'active'}
         Core-electron excitation.
-    options : F12MethodOptions
-        F12MethodOptions.
     charge : int, optional
         Charge.
     multiplicity : int, optional
@@ -158,14 +159,12 @@ def make_method_lines(
     command : str
         Command.
 
-    """
-    option = ""
-    if options.cabs_singles is not None and not method.is_pno and method.is_f12:
-        option += f",CABS_SINGLES={options.cabs_singles}"
-    if options.core_singles is not None and not method.is_pno and method.is_f12:
-        option += f",CORE_SINGLES={options.core_singles}"
+    Raises
+    ------
+    ValueError
+        If `method` cannot be parsed.
 
-    str_core = ";CORE" if core == "active" and not method.is_hf else ""
+    """
     wf_directive = make_wf_directive(charge, multiplicity)
     lines = []
     if isinstance(method, DFTMethod):
@@ -177,15 +176,10 @@ def make_method_lines(
     if method.is_hf:
         lines.append(f"{{{method.name}{wf_directive}}}")
         return "\n".join(lines)
-
-    lines.append(f"{{{method.ref}{wf_directive}}}")
-    if method.is_pno and method.is_f12:
-        lines.append(f"{{DF-CABS{str_core}}}")
-    name = method.name.replace("CCSD_T", "CCSD(T)")
-    name = method.name.replace("DF-PNO", "PNO")
-    lines.append(f"{{{name}{option}{str_core}}}")
-
-    return "\n".join(lines)
+    if isinstance(method, PostHFMethod):
+        lines.append(parse_post_hf_method(method, core=core, wf_directive=wf_directive))
+        return "\n".join(lines)
+    raise ValueError(method)
 
 
 def parse_heavy_basis(basis: str) -> str:
@@ -318,8 +312,8 @@ class MolproInputWriter:
         Basis set.
     core : {"active", "frozen"}, default: "frozen"
         Whether the core is active or frozen.
-    method_options : F12MethodOptions
-        F12MethodOptions.
+    method_options : dict
+        Method options.
     charge : int | None, default: None
         Charge.
     multiplicity : int | None, default: None
@@ -335,7 +329,7 @@ class MolproInputWriter:
     basis: str
     _: KW_ONLY
     core: str = "frozen"
-    method_options: F12MethodOptions = field(default_factory=F12MethodOptions)
+    method_options: dict = field(default_factory=dict)
     cabs_singles: int | None = None
     core_singles: int | None = None
     geometry: MolproInputGeometry = field(default_factory=MolproInputGeometry)
@@ -380,6 +374,10 @@ class MolproInputWriter:
         else:
             method = methods_all[self.method]
 
+        for k, v in self.method_options.items():
+            if v is not None:
+                setattr(method, k, v)
+
         if self.basis not in bases_all:
             raise ValueError(self.basis)
 
@@ -390,7 +388,6 @@ class MolproInputWriter:
         method_lines = make_method_lines(
             method,
             core=self.core,
-            options=self.method_options,
             charge=self.charge,
             multiplicity=self.multiplicity,
         )
@@ -432,10 +429,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace) -> None:
     """Run."""
-    method_options = F12MethodOptions(
-        cabs_singles=args.cabs_singles,
-        core_singles=args.core_singles,
-    )
+    method_options = {
+        "cabs_singles": args.cabs_singles,
+        "core_singles": args.core_singles,
+    }
     if args.method in names_dft:
         # register the user specified DFT method
         method = make_method_dft(
