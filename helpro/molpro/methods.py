@@ -138,6 +138,9 @@ def _make_methods_dft() -> dict[str, DFTMethod]:
     - `DF` is not available for `UKS`; only `CF` is availble.
     - It makes less sense to add the dispersion correction to LDA
       because LDA already has an overbinding nature.
+    - Since 2024.1.0, Many alias names for libxc functionals have been added.
+
+    https://www.molpro.net/manual/doku.php?id=recent_changes#dft_functional_alias_names
 
     """
     methods = {}

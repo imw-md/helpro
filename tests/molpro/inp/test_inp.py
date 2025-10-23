@@ -42,10 +42,10 @@ def test_basic(*, method: str, basis: str, core: str, tmp_path: Path) -> None:
     assert s == sref
 
 
-def test_xc(tmp_path: Path) -> None:
+@pytest.mark.parametrize("xc", ["PBESOL", "R2SCAN"])
+def test_xc(xc: str, tmp_path: Path) -> None:
     """Test user-specified exchange-correlation functionals."""
     name = "DF-KS"
-    xc = "PBESOL"
     basis = "cc-pVDZ"
     core = "frozen"
     p = Path(__file__).parent / "data" / "xc"
