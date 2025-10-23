@@ -19,7 +19,7 @@ xcs = (
 dispersions = ("", "D2", "D3", "D3_BJ", "D4")
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class Method:
     """Quantum-chemistry method."""
 
@@ -31,15 +31,27 @@ class Method:
     ref: str = ""  # reference method name for post-HF and post-KS
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class PostHFMethod(Method):
-    """Post-HF method."""
+    """Post-HF method.
+
+    Attributes
+    ----------
+    cabs_singles : int, optional
+        CABS_SINGLES for non-PNO F12 methods.
+    core_singles : int, optional
+        CORE_SINGLES for non-PNO F12 methods.
+
+    """
 
     is_f12: bool = False
     is_pno: bool = False
 
+    cabs_singles: int | None = None
+    core_singles: int | None = None
 
-@dataclass(frozen=True, kw_only=True)
+
+@dataclass(kw_only=True, slots=True)
 class DFTMethod(Method):
     """DFT Method."""
 
@@ -47,7 +59,7 @@ class DFTMethod(Method):
     gridthr: float | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class RPAMethod(Method):
     """RPA Method."""
 
