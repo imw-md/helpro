@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass, replace
 
+dispersions = ("", "D2", "D3", "D3_BJ", "D4")
+
 
 @dataclass(frozen=True, kw_only=True)
 class Method:
@@ -20,6 +22,8 @@ class Method:
 @dataclass(frozen=True, kw_only=True)
 class DFTMethod(Method):
     """DFT Method."""
+
+    dispersion: str = ""
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -119,28 +123,28 @@ def _make_methods_dft() -> dict[str, DFTMethod]:
     methods = {}
 
     xcs = ("LDA", "PBE")
-    dispersions = ("", "-D2", "-D3", "-D3_BJ", "-D4")
     for xc in xcs:
         for dispersion in dispersions:
+            sep = "-" if dispersion else ""
             if xc == "LDA" and dispersion:
                 continue
-            name = f"KS_{xc}{dispersion}"
-            kwargs = {"xc": xc}
+            name = f"KS_{xc}{sep}{dispersion}"
+            kwargs = {"xc": xc, "dispersion": dispersion}
             methods[name] = DFTMethod(name=name, **kwargs)
 
-            name = f"RKS_{xc}{dispersion}"
+            name = f"RKS_{xc}{sep}{dispersion}"
             methods[name] = DFTMethod(name=name, **kwargs)
 
-            name = f"UKS_{xc}{dispersion}"
+            name = f"UKS_{xc}{sep}{dispersion}"
             kwargs.update(is_spin_u=True)
             methods[name] = DFTMethod(name=name, **kwargs)
 
             kwargs.update(is_df=True, is_spin_u=False)
 
-            name = f"DF-KS_{xc}{dispersion}"
+            name = f"DF-KS_{xc}{sep}{dispersion}"
             methods[name] = DFTMethod(name=name, **kwargs)
 
-            name = f"DF-RKS_{xc}{dispersion}"
+            name = f"DF-RKS_{xc}{sep}{dispersion}"
             methods[name] = DFTMethod(name=name, **kwargs)
 
     return methods
