@@ -104,6 +104,25 @@ def _make_methods_post_hf() -> dict[str, Method]:
     return methods
 
 
+def make_method_dft(name: str, xc: str, dispersion: str) -> DFTMethod:
+    """Make `DFTMethod`.
+
+    Returns
+    -------
+    DFTMethod
+
+    """
+    is_spin_u = name.startswith("UKS")
+    is_df = name.startswith("DF-")
+    return DFTMethod(
+        name=name,
+        xc=xc,
+        dispersion=dispersion,
+        is_df=is_df,
+        is_spin_u=is_spin_u,
+    )
+
+
 def _make_methods_dft() -> dict[str, DFTMethod]:
     """Make DFT methods.
 
@@ -130,15 +149,8 @@ def _make_methods_dft() -> dict[str, DFTMethod]:
             if xc == "LDA" and dispersion:
                 continue
             for name in names_dft:
-                is_spin_u = name == "UKS"
-                is_df = name.startswith("DF-")
-                methods[f"{name}_{xc}{sep}{dispersion}"] = DFTMethod(
-                    name=name,
-                    xc=xc,
-                    dispersion=dispersion,
-                    is_df=is_df,
-                    is_spin_u=is_spin_u,
-                )
+                k = f"{name}_{xc}{sep}{dispersion}"
+                methods[k] = make_method_dft(name=name, xc=xc, dispersion=dispersion)
 
     return methods
 
