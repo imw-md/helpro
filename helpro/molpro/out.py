@@ -53,6 +53,7 @@ def read_molpro_out(fd: str | Path) -> Atoms:
                 forces = np.array(forces)
                 forces *= -1.0 * (Hartree / eV) / (Bohr / Angstrom)
 
+    positions = np.array(positions) * (Bohr / Angstrom)
     atoms = Atoms(numbers=numbers, positions=positions)
     atoms.calc = SinglePointCalculator(atoms, energy=energy, forces=forces)
     return atoms
