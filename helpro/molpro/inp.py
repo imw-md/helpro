@@ -128,8 +128,9 @@ def parse_post_hf_method(method: PostHFMethod, *, core: str, wf_directive: str) 
     lines.append(f"{{{method.ref}{wf_directive}}}")
     if method.is_pno and method.is_f12:
         lines.append(f"{{DF-CABS{str_core}}}")
-    name = method.name.replace("CCSD_T", "CCSD(T)")
-    name = method.name.replace("DF-PNO", "PNO")
+    name = method.name
+    name = name.replace("CCSD_T", "CCSD(T)")
+    name = name.replace("DF-PNO", "PNO")
     lines.append(f"{{{name}{option}{str_core}}}")
     return "\n".join(lines)
 
